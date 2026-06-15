@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Activity, MapPin, Clock, ShieldCheck, AlertOctagon } from "lucide-react";
-import { GuardianSession } from "@workspace/api-zod";
+type GuardianSession = { sessionId: string; destination: string; expectedArrivalTime: string; status: "active" | "completed" | "alert"; startedAt: string; message?: string };
 
 export function Guardian() {
   const [destination, setDestination] = useState("");

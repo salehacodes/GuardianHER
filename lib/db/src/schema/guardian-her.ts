@@ -10,6 +10,7 @@ export const safeSpaceTypeEnum = pgEnum("safe_space_type", ["police", "hospital"
 export const guardianStatusEnum = pgEnum("guardian_status", ["active", "completed", "alert"]);
 export const alertTypeEnum = pgEnum("alert_type", ["sos", "guardian_alert", "community_report", "predictive"]);
 export const alertSeverityEnum = pgEnum("alert_severity", ["low", "medium", "high", "critical"]);
+export const codeWordActionEnum = pgEnum("code_word_action", ["silent_sos", "share_location", "notify_circle"]);
 
 export const circleContactsTable = pgTable("circle_contacts", {
   id: serial("id").primaryKey(),
@@ -26,6 +27,10 @@ export const evidenceItemsTable = pgTable("evidence_items", {
   type: evidenceTypeEnum("type").notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(),
+  incidentType: text("incident_type"),
+  aiSummary: text("ai_summary"),
+  severity: text("severity"),
+  tags: text("tags"),
   fileUrl: text("file_url"),
   incidentDate: text("incident_date"),
   timestamp: timestamp("timestamp").defaultNow(),
@@ -63,11 +68,20 @@ export const safetyAlertsTable = pgTable("safety_alerts", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
+export const codeWordsTable = pgTable("code_words", {
+  id: serial("id").primaryKey(),
+  phrase: text("phrase").notNull(),
+  action: codeWordActionEnum("action").notNull(),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertCircleContactSchema = createInsertSchema(circleContactsTable).omit({ id: true, createdAt: true });
 export const insertEvidenceItemSchema = createInsertSchema(evidenceItemsTable).omit({ id: true, timestamp: true });
 export const insertSafetyReportSchema = createInsertSchema(safetyReportsTable).omit({ id: true, timestamp: true, upvotes: true });
 export const insertGuardianSessionSchema = createInsertSchema(guardianSessionsTable).omit({ id: true, startedAt: true, completedAt: true });
 export const insertSafetyAlertSchema = createInsertSchema(safetyAlertsTable).omit({ id: true, timestamp: true });
+export const insertCodeWordSchema = createInsertSchema(codeWordsTable).omit({ id: true, createdAt: true });
 
 export type CircleContact = typeof circleContactsTable.$inferSelect;
 export type InsertCircleContact = z.infer<typeof insertCircleContactSchema>;
@@ -77,3 +91,4 @@ export type SafetyReport = typeof safetyReportsTable.$inferSelect;
 export type InsertSafetyReport = z.infer<typeof insertSafetyReportSchema>;
 export type GuardianSession = typeof guardianSessionsTable.$inferSelect;
 export type SafetyAlert = typeof safetyAlertsTable.$inferSelect;
+export type CodeWord = typeof codeWordsTable.$inferSelect;

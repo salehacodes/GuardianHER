@@ -330,6 +330,106 @@ export const GetDashboardSummaryResponse = zod.object({
 
 
 /**
+ * @summary Get all registered code words
+ */
+export const GetCodeWordsResponseItem = zod.object({
+  "id": zod.number(),
+  "phrase": zod.string(),
+  "action": zod.enum(['silent_sos', 'share_location', 'notify_circle']),
+  "note": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const GetCodeWordsResponse = zod.array(GetCodeWordsResponseItem)
+
+
+/**
+ * @summary Register a new code word
+ */
+export const AddCodeWordBody = zod.object({
+  "phrase": zod.string(),
+  "action": zod.enum(['silent_sos', 'share_location', 'notify_circle']),
+  "note": zod.string().nullish()
+})
+
+
+/**
+ * @summary Delete a code word
+ */
+export const DeleteCodeWordParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteCodeWordResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Check if a message contains a registered code word
+ */
+export const CheckCodeWordBody = zod.object({
+  "message": zod.string()
+})
+
+export const CheckCodeWordResponse = zod.object({
+  "triggered": zod.boolean(),
+  "action": zod.string().nullable(),
+  "phrase": zod.string().nullish(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary AI-analyze and auto-categorize an evidence description
+ */
+export const CategorizeEvidenceBody = zod.object({
+  "description": zod.string(),
+  "type": zod.string(),
+  "incidentDate": zod.string().nullish()
+})
+
+export const CategorizeEvidenceResponse = zod.object({
+  "category": zod.string(),
+  "incidentType": zod.string(),
+  "severity": zod.enum(['low', 'medium', 'high', 'critical']),
+  "summary": zod.string(),
+  "tags": zod.array(zod.string())
+})
+
+
+/**
+ * @summary Generate a full AI incident report from selected evidence items
+ */
+export const GenerateIncidentReportBody = zod.object({
+  "evidenceIds": zod.array(zod.number()),
+  "title": zod.string(),
+  "additionalContext": zod.string().nullish()
+})
+
+export const GenerateIncidentReportResponse = zod.object({
+  "reportId": zod.string(),
+  "title": zod.string(),
+  "generatedAt": zod.string(),
+  "incidentType": zod.string(),
+  "severity": zod.string(),
+  "summary": zod.string(),
+  "timeline": zod.string(),
+  "recommendations": zod.array(zod.string()),
+  "legalSteps": zod.array(zod.string()).optional(),
+  "evidenceCount": zod.number(),
+  "evidenceItems": zod.array(zod.object({
+  "id": zod.number(),
+  "type": zod.enum(['screenshot', 'voice', 'image', 'document']),
+  "description": zod.string(),
+  "timestamp": zod.string(),
+  "category": zod.string(),
+  "fileUrl": zod.string().nullish(),
+  "incidentDate": zod.string().nullish()
+}))
+})
+
+
+/**
  * @summary Get recent safety alerts
  */
 export const GetRecentAlertsResponseItem = zod.object({

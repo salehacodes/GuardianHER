@@ -368,6 +368,114 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardSummary"
 
+  /codewords:
+    get:
+      operationId: getCodeWords
+      tags: [assistant]
+      summary: Get all registered code words
+      responses:
+        "200":
+          description: List of code words
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CodeWord"
+    post:
+      operationId: addCodeWord
+      tags: [assistant]
+      summary: Register a new code word
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CodeWordInput"
+      responses:
+        "201":
+          description: Code word registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodeWord"
+
+  /codewords/{id}:
+    delete:
+      operationId: deleteCodeWord
+      tags: [assistant]
+      summary: Delete a code word
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /codewords/check:
+    post:
+      operationId: checkCodeWord
+      tags: [assistant]
+      summary: Check if a message contains a registered code word
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CodeWordCheckInput"
+      responses:
+        "200":
+          description: Check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodeWordCheckResult"
+
+  /evidence/categorize:
+    post:
+      operationId: categorizeEvidence
+      tags: [evidence]
+      summary: AI-analyze and auto-categorize an evidence description
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvidenceCategorizeInput"
+      responses:
+        "200":
+          description: AI categorization result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvidenceCategorizeResult"
+
+  /evidence/report:
+    post:
+      operationId: generateIncidentReport
+      tags: [evidence]
+      summary: Generate a full AI incident report from selected evidence items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncidentReportInput"
+      responses:
+        "200":
+          description: Generated incident report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentReport"
+
   /dashboard/alerts:
     get:
       operationId: getRecentAlerts
@@ -840,6 +948,129 @@ components:
         severity:
           type: string
           enum: [low, medium, high, critical]
+
+    CodeWord:
+      type: object
+      required: [id, phrase, action, createdAt]
+      properties:
+        id:
+          type: integer
+        phrase:
+          type: string
+        action:
+          type: string
+          enum: [silent_sos, share_location, notify_circle]
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    CodeWordInput:
+      type: object
+      required: [phrase, action]
+      properties:
+        phrase:
+          type: string
+        action:
+          type: string
+          enum: [silent_sos, share_location, notify_circle]
+        note:
+          type: ["string", "null"]
+
+    CodeWordCheckInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    CodeWordCheckResult:
+      type: object
+      required: [triggered, action, message]
+      properties:
+        triggered:
+          type: boolean
+        action:
+          type: ["string", "null"]
+        phrase:
+          type: ["string", "null"]
+        message:
+          type: string
+
+    EvidenceCategorizeInput:
+      type: object
+      required: [description, type]
+      properties:
+        description:
+          type: string
+        type:
+          type: string
+        incidentDate:
+          type: ["string", "null"]
+
+    EvidenceCategorizeResult:
+      type: object
+      required: [category, incidentType, severity, summary, tags]
+      properties:
+        category:
+          type: string
+        incidentType:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        summary:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    IncidentReportInput:
+      type: object
+      required: [evidenceIds, title]
+      properties:
+        evidenceIds:
+          type: array
+          items:
+            type: integer
+        title:
+          type: string
+        additionalContext:
+          type: ["string", "null"]
+
+    IncidentReport:
+      type: object
+      required: [reportId, title, generatedAt, incidentType, severity, summary, timeline, recommendations, evidenceCount, evidenceItems]
+      properties:
+        reportId:
+          type: string
+        title:
+          type: string
+        generatedAt:
+          type: string
+        incidentType:
+          type: string
+        severity:
+          type: string
+        summary:
+          type: string
+        timeline:
+          type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+        legalSteps:
+          type: array
+          items:
+            type: string
+        evidenceCount:
+          type: integer
+        evidenceItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvidenceItem"
 
     DeleteResult:
       type: object

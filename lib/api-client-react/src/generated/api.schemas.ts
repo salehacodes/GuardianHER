@@ -391,6 +391,99 @@ export interface SafetyAlert {
   severity: SafetyAlertSeverity;
 }
 
+export type CodeWordAction = typeof CodeWordAction[keyof typeof CodeWordAction];
+
+
+export const CodeWordAction = {
+  silent_sos: 'silent_sos',
+  share_location: 'share_location',
+  notify_circle: 'notify_circle',
+} as const;
+
+export interface CodeWord {
+  id: number;
+  phrase: string;
+  action: CodeWordAction;
+  /** @nullable */
+  note?: string | null;
+  createdAt: string;
+}
+
+export type CodeWordInputAction = typeof CodeWordInputAction[keyof typeof CodeWordInputAction];
+
+
+export const CodeWordInputAction = {
+  silent_sos: 'silent_sos',
+  share_location: 'share_location',
+  notify_circle: 'notify_circle',
+} as const;
+
+export interface CodeWordInput {
+  phrase: string;
+  action: CodeWordInputAction;
+  /** @nullable */
+  note?: string | null;
+}
+
+export interface CodeWordCheckInput {
+  message: string;
+}
+
+export interface CodeWordCheckResult {
+  triggered: boolean;
+  /** @nullable */
+  action: string | null;
+  /** @nullable */
+  phrase?: string | null;
+  message: string;
+}
+
+export interface EvidenceCategorizeInput {
+  description: string;
+  type: string;
+  /** @nullable */
+  incidentDate?: string | null;
+}
+
+export type EvidenceCategorizeResultSeverity = typeof EvidenceCategorizeResultSeverity[keyof typeof EvidenceCategorizeResultSeverity];
+
+
+export const EvidenceCategorizeResultSeverity = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  critical: 'critical',
+} as const;
+
+export interface EvidenceCategorizeResult {
+  category: string;
+  incidentType: string;
+  severity: EvidenceCategorizeResultSeverity;
+  summary: string;
+  tags: string[];
+}
+
+export interface IncidentReportInput {
+  evidenceIds: number[];
+  title: string;
+  /** @nullable */
+  additionalContext?: string | null;
+}
+
+export interface IncidentReport {
+  reportId: string;
+  title: string;
+  generatedAt: string;
+  incidentType: string;
+  severity: string;
+  summary: string;
+  timeline: string;
+  recommendations: string[];
+  legalSteps?: string[];
+  evidenceCount: number;
+  evidenceItems: EvidenceItem[];
+}
+
 export interface DeleteResult {
   success: boolean;
 }

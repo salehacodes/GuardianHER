@@ -12,6 +12,8 @@ import spacesRouter from "./spaces";
 import assistantRouter from "./assistant";
 import heatmapRouter from "./heatmap";
 import dashboardRouter from "./dashboard";
+import codewordsRouter from "./codewords";
+import evidenceAiRouter from "./evidence-ai";
 
 const router: IRouter = Router();
 
@@ -21,11 +23,13 @@ router.use(routesRouter);
 router.use(sosRouter);
 router.use(circleRouter);
 router.use(guardianRouter);
+router.use(evidenceAiRouter);
 router.use(evidenceRouter);
 router.use(deepfakeRouter);
 router.use(reportsRouter);
 router.use(spacesRouter);
 router.use(assistantRouter);
+router.use(codewordsRouter);
 router.use(heatmapRouter);
 router.use(dashboardRouter);
 

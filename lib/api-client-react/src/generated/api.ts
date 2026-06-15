@@ -24,10 +24,16 @@ import type {
   AssistantMessageResult,
   CircleContact,
   CircleContactInput,
+  CodeWord,
+  CodeWordCheckInput,
+  CodeWordCheckResult,
+  CodeWordInput,
   DashboardSummary,
   DeepfakeInput,
   DeepfakeResult,
   DeleteResult,
+  EvidenceCategorizeInput,
+  EvidenceCategorizeResult,
   EvidenceInput,
   EvidenceItem,
   GuardianCheckinInput,
@@ -36,6 +42,8 @@ import type {
   GuardianStartInput,
   HealthStatus,
   HeatmapResult,
+  IncidentReport,
+  IncidentReportInput,
   LocationInput,
   RouteRequest,
   RouteResult,
@@ -1437,6 +1445,437 @@ export function useGetDashboardSummary<TData = Awaited<ReturnType<typeof getDash
 
 
 
+
+export const getGetCodeWordsUrl = () => {
+
+
+
+
+  return `/api/codewords`
+}
+
+/**
+ * @summary Get all registered code words
+ */
+export const getCodeWords = async ( options?: RequestInit): Promise<CodeWord[]> => {
+
+  return customFetch<CodeWord[]>(getGetCodeWordsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCodeWordsQueryKey = () => {
+    return [
+    `/api/codewords`
+    ] as const;
+    }
+
+
+export const getGetCodeWordsQueryOptions = <TData = Awaited<ReturnType<typeof getCodeWords>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCodeWords>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCodeWordsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCodeWords>>> = ({ signal }) => getCodeWords({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCodeWords>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCodeWordsQueryResult = NonNullable<Awaited<ReturnType<typeof getCodeWords>>>
+export type GetCodeWordsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all registered code words
+ */
+
+export function useGetCodeWords<TData = Awaited<ReturnType<typeof getCodeWords>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCodeWords>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCodeWordsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddCodeWordUrl = () => {
+
+
+
+
+  return `/api/codewords`
+}
+
+/**
+ * @summary Register a new code word
+ */
+export const addCodeWord = async (codeWordInput: CodeWordInput, options?: RequestInit): Promise<CodeWord> => {
+
+  return customFetch<CodeWord>(getAddCodeWordUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      codeWordInput,)
+  }
+);}
+
+
+
+
+export const getAddCodeWordMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addCodeWord>>, TError,{data: BodyType<CodeWordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addCodeWord>>, TError,{data: BodyType<CodeWordInput>}, TContext> => {
+
+const mutationKey = ['addCodeWord'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addCodeWord>>, {data: BodyType<CodeWordInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addCodeWord(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddCodeWordMutationResult = NonNullable<Awaited<ReturnType<typeof addCodeWord>>>
+    export type AddCodeWordMutationBody = BodyType<CodeWordInput>
+    export type AddCodeWordMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Register a new code word
+ */
+export const useAddCodeWord = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addCodeWord>>, TError,{data: BodyType<CodeWordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addCodeWord>>,
+        TError,
+        {data: BodyType<CodeWordInput>},
+        TContext
+      > => {
+      return useMutation(getAddCodeWordMutationOptions(options));
+    }
+
+export const getDeleteCodeWordUrl = (id: number,) => {
+
+
+
+
+  return `/api/codewords/${id}`
+}
+
+/**
+ * @summary Delete a code word
+ */
+export const deleteCodeWord = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteCodeWordUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteCodeWordMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCodeWord>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCodeWord>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCodeWord'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCodeWord>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCodeWord(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCodeWordMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCodeWord>>>
+
+    export type DeleteCodeWordMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a code word
+ */
+export const useDeleteCodeWord = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCodeWord>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCodeWord>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCodeWordMutationOptions(options));
+    }
+
+export const getCheckCodeWordUrl = () => {
+
+
+
+
+  return `/api/codewords/check`
+}
+
+/**
+ * @summary Check if a message contains a registered code word
+ */
+export const checkCodeWord = async (codeWordCheckInput: CodeWordCheckInput, options?: RequestInit): Promise<CodeWordCheckResult> => {
+
+  return customFetch<CodeWordCheckResult>(getCheckCodeWordUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      codeWordCheckInput,)
+  }
+);}
+
+
+
+
+export const getCheckCodeWordMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkCodeWord>>, TError,{data: BodyType<CodeWordCheckInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof checkCodeWord>>, TError,{data: BodyType<CodeWordCheckInput>}, TContext> => {
+
+const mutationKey = ['checkCodeWord'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof checkCodeWord>>, {data: BodyType<CodeWordCheckInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  checkCodeWord(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CheckCodeWordMutationResult = NonNullable<Awaited<ReturnType<typeof checkCodeWord>>>
+    export type CheckCodeWordMutationBody = BodyType<CodeWordCheckInput>
+    export type CheckCodeWordMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Check if a message contains a registered code word
+ */
+export const useCheckCodeWord = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkCodeWord>>, TError,{data: BodyType<CodeWordCheckInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof checkCodeWord>>,
+        TError,
+        {data: BodyType<CodeWordCheckInput>},
+        TContext
+      > => {
+      return useMutation(getCheckCodeWordMutationOptions(options));
+    }
+
+export const getCategorizeEvidenceUrl = () => {
+
+
+
+
+  return `/api/evidence/categorize`
+}
+
+/**
+ * @summary AI-analyze and auto-categorize an evidence description
+ */
+export const categorizeEvidence = async (evidenceCategorizeInput: EvidenceCategorizeInput, options?: RequestInit): Promise<EvidenceCategorizeResult> => {
+
+  return customFetch<EvidenceCategorizeResult>(getCategorizeEvidenceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      evidenceCategorizeInput,)
+  }
+);}
+
+
+
+
+export const getCategorizeEvidenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof categorizeEvidence>>, TError,{data: BodyType<EvidenceCategorizeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof categorizeEvidence>>, TError,{data: BodyType<EvidenceCategorizeInput>}, TContext> => {
+
+const mutationKey = ['categorizeEvidence'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof categorizeEvidence>>, {data: BodyType<EvidenceCategorizeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  categorizeEvidence(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CategorizeEvidenceMutationResult = NonNullable<Awaited<ReturnType<typeof categorizeEvidence>>>
+    export type CategorizeEvidenceMutationBody = BodyType<EvidenceCategorizeInput>
+    export type CategorizeEvidenceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary AI-analyze and auto-categorize an evidence description
+ */
+export const useCategorizeEvidence = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof categorizeEvidence>>, TError,{data: BodyType<EvidenceCategorizeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof categorizeEvidence>>,
+        TError,
+        {data: BodyType<EvidenceCategorizeInput>},
+        TContext
+      > => {
+      return useMutation(getCategorizeEvidenceMutationOptions(options));
+    }
+
+export const getGenerateIncidentReportUrl = () => {
+
+
+
+
+  return `/api/evidence/report`
+}
+
+/**
+ * @summary Generate a full AI incident report from selected evidence items
+ */
+export const generateIncidentReport = async (incidentReportInput: IncidentReportInput, options?: RequestInit): Promise<IncidentReport> => {
+
+  return customFetch<IncidentReport>(getGenerateIncidentReportUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      incidentReportInput,)
+  }
+);}
+
+
+
+
+export const getGenerateIncidentReportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateIncidentReport>>, TError,{data: BodyType<IncidentReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateIncidentReport>>, TError,{data: BodyType<IncidentReportInput>}, TContext> => {
+
+const mutationKey = ['generateIncidentReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateIncidentReport>>, {data: BodyType<IncidentReportInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  generateIncidentReport(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateIncidentReportMutationResult = NonNullable<Awaited<ReturnType<typeof generateIncidentReport>>>
+    export type GenerateIncidentReportMutationBody = BodyType<IncidentReportInput>
+    export type GenerateIncidentReportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate a full AI incident report from selected evidence items
+ */
+export const useGenerateIncidentReport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateIncidentReport>>, TError,{data: BodyType<IncidentReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateIncidentReport>>,
+        TError,
+        {data: BodyType<IncidentReportInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateIncidentReportMutationOptions(options));
+    }
 
 export const getGetRecentAlertsUrl = () => {
 
