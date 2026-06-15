@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "GuardianHER"
+version = "1.0.0"
+id = "artifacts/guardian-her"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18359
+
+[services.development]
+run = "pnpm --filter @workspace/guardian-her run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/guardian-her", "run", "build" ]
+publicDir = "artifacts/guardian-her/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18359"
+BASE_PATH = "/"

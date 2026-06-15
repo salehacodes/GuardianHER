@@ -1,22 +1,45 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: GuardianHER API - Women Safety Platform
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: safety
+    description: Safety score and analysis
+  - name: routes
+    description: Safe route planning
+  - name: sos
+    description: Emergency SOS
+  - name: circle
+    description: Safety circle contacts
+  - name: guardian
+    description: Guardian mode / digital safe twin
+  - name: evidence
+    description: Evidence vault
+  - name: deepfake
+    description: Deepfake detection
+  - name: reports
+    description: Community safety reports
+  - name: spaces
+    description: Nearby safe spaces
+  - name: assistant
+    description: AI safety assistant
+  - name: heatmap
+    description: Safety heatmap data
+  - name: dashboard
+    description: Dashboard summaries
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +47,342 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /safety/score:
+    post:
+      operationId: getSafetyScore
+      tags: [safety]
+      summary: Get AI safety score for a location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SafetyScoreRequest"
+      responses:
+        "200":
+          description: Safety score result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SafetyScoreResult"
+
+  /routes/safe:
+    post:
+      operationId: getSafeRoutes
+      tags: [routes]
+      summary: Get safe route recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RouteRequest"
+      responses:
+        "200":
+          description: Safe route options
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteResult"
+
+  /sos/alert:
+    post:
+      operationId: sendSosAlert
+      tags: [sos]
+      summary: Send emergency SOS alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SosInput"
+      responses:
+        "200":
+          description: SOS alert sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SosResult"
+
+  /circle:
+    get:
+      operationId: getCircleContacts
+      tags: [circle]
+      summary: Get safety circle contacts
+      responses:
+        "200":
+          description: List of contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CircleContact"
+    post:
+      operationId: addCircleContact
+      tags: [circle]
+      summary: Add a contact to the safety circle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CircleContactInput"
+      responses:
+        "201":
+          description: Contact added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CircleContact"
+
+  /circle/{id}:
+    delete:
+      operationId: removeCircleContact
+      tags: [circle]
+      summary: Remove a contact from the safety circle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Contact removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /guardian/start:
+    post:
+      operationId: startGuardianMode
+      tags: [guardian]
+      summary: Start guardian mode / digital safe twin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GuardianStartInput"
+      responses:
+        "200":
+          description: Guardian mode started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GuardianSession"
+
+  /guardian/checkin:
+    post:
+      operationId: guardianCheckin
+      tags: [guardian]
+      summary: Check in during guardian mode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GuardianCheckinInput"
+      responses:
+        "200":
+          description: Checkin acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GuardianCheckinResult"
+
+  /evidence:
+    get:
+      operationId: getEvidenceItems
+      tags: [evidence]
+      summary: Get all evidence vault items
+      responses:
+        "200":
+          description: List of evidence items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EvidenceItem"
+    post:
+      operationId: addEvidenceItem
+      tags: [evidence]
+      summary: Add evidence to vault
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvidenceInput"
+      responses:
+        "201":
+          description: Evidence added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvidenceItem"
+
+  /evidence/{id}:
+    delete:
+      operationId: deleteEvidenceItem
+      tags: [evidence]
+      summary: Delete evidence item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Evidence deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /deepfake/analyze:
+    post:
+      operationId: analyzeDeepfake
+      tags: [deepfake]
+      summary: Analyze media for deepfake detection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeepfakeInput"
+      responses:
+        "200":
+          description: Deepfake analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeepfakeResult"
+
+  /reports:
+    get:
+      operationId: getCommunityReports
+      tags: [reports]
+      summary: Get community safety reports
+      responses:
+        "200":
+          description: List of reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SafetyReport"
+    post:
+      operationId: submitCommunityReport
+      tags: [reports]
+      summary: Submit a community safety report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SafetyReportInput"
+      responses:
+        "201":
+          description: Report submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SafetyReport"
+
+  /spaces/nearby:
+    post:
+      operationId: getNearbySafeSpaces
+      tags: [spaces]
+      summary: Get nearby safe spaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationInput"
+      responses:
+        "200":
+          description: List of nearby safe spaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SafeSpace"
+
+  /assistant/chat:
+    post:
+      operationId: chatWithAssistant
+      tags: [assistant]
+      summary: Chat with AI safety assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantMessageInput"
+      responses:
+        "200":
+          description: Assistant response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantMessageResult"
+
+  /heatmap:
+    post:
+      operationId: getSafetyHeatmap
+      tags: [heatmap]
+      summary: Get safety heatmap data for an area
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationInput"
+      responses:
+        "200":
+          description: Heatmap data points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeatmapResult"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get personal safety dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/alerts:
+    get:
+      operationId: getRecentAlerts
+      tags: [dashboard]
+      summary: Get recent safety alerts
+      responses:
+        "200":
+          description: Recent alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SafetyAlert"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +390,460 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    SafetyScoreRequest:
+      type: object
+      required: [location]
+      properties:
+        location:
+          type: string
+        time:
+          type: ["string", "null"]
+        date:
+          type: ["string", "null"]
+
+    SafetyScoreResult:
+      type: object
+      required: [location, score, riskLevel, incidents, bestTimeToTravel, predictiveAlert]
+      properties:
+        location:
+          type: string
+        score:
+          type: integer
+        riskLevel:
+          type: string
+          enum: [Low, Medium, High]
+        incidents:
+          type: array
+          items:
+            $ref: "#/components/schemas/Incident"
+        bestTimeToTravel:
+          type: string
+        predictiveAlert:
+          type: string
+
+    Incident:
+      type: object
+      required: [id, type, description, time, distance]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        time:
+          type: string
+        distance:
+          type: string
+
+    RouteRequest:
+      type: object
+      required: [origin, destination]
+      properties:
+        origin:
+          type: string
+        destination:
+          type: string
+        time:
+          type: ["string", "null"]
+
+    RouteResult:
+      type: object
+      required: [origin, destination, fastestRoute, safestRoute, recommendation]
+      properties:
+        origin:
+          type: string
+        destination:
+          type: string
+        fastestRoute:
+          $ref: "#/components/schemas/Route"
+        safestRoute:
+          $ref: "#/components/schemas/Route"
+        recommendation:
+          type: string
+
+    Route:
+      type: object
+      required: [name, duration, distance, safetyScore, highlights, waypoints]
+      properties:
+        name:
+          type: string
+        duration:
+          type: string
+        distance:
+          type: string
+        safetyScore:
+          type: integer
+        highlights:
+          type: array
+          items:
+            type: string
+        waypoints:
+          type: array
+          items:
+            type: string
+
+    SosInput:
+      type: object
+      required: [location, message]
+      properties:
+        location:
+          type: string
+        message:
+          type: string
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+
+    SosResult:
+      type: object
+      required: [success, contactsNotified, message, timestamp]
+      properties:
+        success:
+          type: boolean
+        contactsNotified:
+          type: integer
+        message:
+          type: string
+        timestamp:
+          type: string
+
+    CircleContact:
+      type: object
+      required: [id, name, relationship, phone, isActive]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        relationship:
+          type: string
+        phone:
+          type: string
+        isActive:
+          type: boolean
+        lastSeen:
+          type: ["string", "null"]
+
+    CircleContactInput:
+      type: object
+      required: [name, relationship, phone]
+      properties:
+        name:
+          type: string
+        relationship:
+          type: string
+        phone:
+          type: string
+
+    GuardianStartInput:
+      type: object
+      required: [destination, expectedArrivalTime]
+      properties:
+        destination:
+          type: string
+        expectedArrivalTime:
+          type: string
+        currentLocation:
+          type: ["string", "null"]
+
+    GuardianSession:
+      type: object
+      required: [sessionId, destination, expectedArrivalTime, status, startedAt]
+      properties:
+        sessionId:
+          type: string
+        destination:
+          type: string
+        expectedArrivalTime:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, alert]
+        startedAt:
+          type: string
+        message:
+          type: string
+
+    GuardianCheckinInput:
+      type: object
+      required: [sessionId, status]
+      properties:
+        sessionId:
+          type: string
+        status:
+          type: string
+          enum: [safe, need_help]
+        location:
+          type: ["string", "null"]
+
+    GuardianCheckinResult:
+      type: object
+      required: [acknowledged, message, nextCheckinIn]
+      properties:
+        acknowledged:
+          type: boolean
+        message:
+          type: string
+        nextCheckinIn:
+          type: integer
+
+    EvidenceItem:
+      type: object
+      required: [id, type, description, timestamp, category]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [screenshot, voice, image, document]
+        description:
+          type: string
+        timestamp:
+          type: string
+        category:
+          type: string
+        fileUrl:
+          type: ["string", "null"]
+        incidentDate:
+          type: ["string", "null"]
+
+    EvidenceInput:
+      type: object
+      required: [type, description, category]
+      properties:
+        type:
+          type: string
+          enum: [screenshot, voice, image, document]
+        description:
+          type: string
+        category:
+          type: string
+        fileUrl:
+          type: ["string", "null"]
+        incidentDate:
+          type: ["string", "null"]
+
+    DeepfakeInput:
+      type: object
+      required: [mediaUrl, mediaType]
+      properties:
+        mediaUrl:
+          type: string
+        mediaType:
+          type: string
+          enum: [image, video]
+        description:
+          type: ["string", "null"]
+
+    DeepfakeResult:
+      type: object
+      required: [isDeepfake, confidence, manipulationScore, indicators, recommendation, reportId]
+      properties:
+        isDeepfake:
+          type: boolean
+        confidence:
+          type: number
+        manipulationScore:
+          type: integer
+        indicators:
+          type: array
+          items:
+            type: string
+        recommendation:
+          type: string
+        reportId:
+          type: string
+
+    SafetyReport:
+      type: object
+      required: [id, type, description, location, timestamp, upvotes, severity]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [harassment, suspicious_activity, unsafe_area, poor_lighting, other]
+        description:
+          type: string
+        location:
+          type: string
+        timestamp:
+          type: string
+        upvotes:
+          type: integer
+        severity:
+          type: string
+          enum: [low, medium, high]
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+
+    SafetyReportInput:
+      type: object
+      required: [type, description, location, severity]
+      properties:
+        type:
+          type: string
+          enum: [harassment, suspicious_activity, unsafe_area, poor_lighting, other]
+        description:
+          type: string
+        location:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high]
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+
+    LocationInput:
+      type: object
+      required: [location]
+      properties:
+        location:
+          type: string
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+
+    SafeSpace:
+      type: object
+      required: [id, name, type, address, distance, isOpen, phone]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+          enum: [police, hospital, pharmacy, womens_center, shelter]
+        address:
+          type: string
+        distance:
+          type: string
+        isOpen:
+          type: boolean
+        phone:
+          type: string
+        rating:
+          type: ["number", "null"]
+
+    AssistantMessageInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        context:
+          type: ["string", "null"]
+
+    AssistantMessageResult:
+      type: object
+      required: [response, category, resources, timestamp]
+      properties:
+        response:
+          type: string
+        category:
+          type: string
+        resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Resource"
+        timestamp:
+          type: string
+
+    Resource:
+      type: object
+      required: [title, description]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        url:
+          type: ["string", "null"]
+
+    HeatmapResult:
+      type: object
+      required: [location, zones, peakRiskHours, forecast]
+      properties:
+        location:
+          type: string
+        zones:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeatmapZone"
+        peakRiskHours:
+          type: array
+          items:
+            type: string
+        forecast:
+          type: string
+
+    HeatmapZone:
+      type: object
+      required: [name, riskLevel, riskScore, incidents, description]
+      properties:
+        name:
+          type: string
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+        riskScore:
+          type: integer
+        incidents:
+          type: integer
+        description:
+          type: string
+
+    DashboardSummary:
+      type: object
+      required: [safetyScore, activeGuardianSessions, circleContacts, recentReports, evidenceItems, sosAlertsSent]
+      properties:
+        safetyScore:
+          type: integer
+        activeGuardianSessions:
+          type: integer
+        circleContacts:
+          type: integer
+        recentReports:
+          type: integer
+        evidenceItems:
+          type: integer
+        sosAlertsSent:
+          type: integer
+        lastCheckinTime:
+          type: ["string", "null"]
+
+    SafetyAlert:
+      type: object
+      required: [id, type, message, location, timestamp, severity]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [sos, guardian_alert, community_report, predictive]
+        message:
+          type: string
+        location:
+          type: string
+        timestamp:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+
+    DeleteResult:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
