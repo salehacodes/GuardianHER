@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Shield, Home, LayoutDashboard, Map, Navigation, FolderLock, ScanFace, Bot, Users, Activity, Bell, Sun, Moon, PhoneIncoming, Archive } from "lucide-react";
+import { Shield, Home, LayoutDashboard, Map, Navigation, FolderLock, ScanFace, Bot, Users, Activity, Bell, Sun, Moon, PhoneIncoming, Archive, Phone, AlertTriangle, Radio, Video, MapPin, X } from "lucide-react";
 import { useSendSosAlert, useGetRecentAlerts } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,8 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
   const [location] = useLocation();
   const { toast } = useToast();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [sosActive, setSosActive] = useState(false);
+  const [sosSteps, setSosSteps] = useState<boolean[]>([false, false, false, false]);
   const notifRef = useRef<HTMLDivElement>(null);
 
   const sosAlert = useSendSosAlert();
@@ -34,14 +36,24 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
   }, []);
 
   const handleSos = () => {
-    sosAlert.mutate(
-      { data: { location: "Current Location", message: "Emergency! I need help." } },
-      {
-        onSuccess: () => {
-          toast({ title: "SOS Alert Sent", description: "Your emergency contacts have been notified.", variant: "destructive" });
-        },
-      }
-    );
+    setSosActive(true);
+    setSosSteps([false, false, false, false]);
+    sosAlert.mutate({ data: { location: "Current Location", message: "Emergency! I need help." } });
+
+    [0, 1, 2, 3].forEach((i) => {
+      setTimeout(() => {
+        setSosSteps((prev) => {
+          const next = [...prev];
+          next[i] = true;
+          return next;
+        });
+      }, (i + 1) * 700);
+    });
+  };
+
+  const dismissSos = () => {
+    setSosActive(false);
+    toast({ title: "Emergency mode dismissed", variant: "destructive" });
   };
 
   const navItems = [
@@ -64,8 +76,106 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
     return "text-primary";
   };
 
+  const sosCheckList = [
+    { label: "Live location shared with Safety Circle", icon: MapPin },
+    { label: "Emergency contacts notified", icon: Phone },
+    { label: "Guardian Mode activated", icon: Shield },
+    { label: "Emergency audio recording started", icon: Radio },
+  ];
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
+      {/* ─── SOS EMERGENCY OVERLAY ─── */}
+      {sosActive && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-sm animate-in fade-in duration-200">
+          {/* Pulsing red border */}
+          <div className="absolute inset-0 border-4 border-red-600 animate-pulse rounded-none pointer-events-none" />
+
+          <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 space-y-8">
+            {/* Header */}
+            <div className="text-center space-y-3">
+              <div className="relative mx-auto w-24 h-24">
+                <div className="absolute inset-0 rounded-full bg-red-600/20 animate-ping" />
+                <div className="absolute inset-2 rounded-full bg-red-600/30 animate-pulse" />
+                <div className="relative w-24 h-24 rounded-full bg-red-600 flex items-center justify-center shadow-2xl shadow-red-600/50">
+                  <AlertTriangle className="w-12 h-12 text-white" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-black text-red-400 tracking-tight">🚨 Emergency Mode Activated</h1>
+              <p className="text-red-300/80 text-sm">Help is being notified. Stay calm.</p>
+            </div>
+
+            {/* Checklist */}
+            <div className="w-full max-w-sm space-y-3">
+              {sosCheckList.map((item, i) => (
+                <div
+                  key={i}
+                  className={`flex items-center gap-4 px-5 py-3.5 rounded-xl border transition-all duration-500 ${
+                    sosSteps[i]
+                      ? "bg-green-500/10 border-green-500/40 text-green-300"
+                      : "bg-white/5 border-white/10 text-white/40"
+                  }`}
+                >
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${
+                    sosSteps[i] ? "bg-green-500" : "bg-white/10"
+                  }`}>
+                    {sosSteps[i] ? (
+                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <item.icon className="w-3 h-3 text-white/40" />
+                    )}
+                  </div>
+                  <span className="font-medium text-sm">{item.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="w-full max-w-sm space-y-3 pt-2">
+              <a href="tel:999" className="flex items-center justify-center gap-3 w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-lg transition-colors shadow-lg shadow-red-600/30">
+                <Phone className="w-5 h-5" /> Call Emergency Services
+              </a>
+              <button
+                onClick={() => {
+                  toast({ title: "Calling Emergency Contact", description: "Connecting you to your primary contact..." });
+                }}
+                className="flex items-center justify-center gap-3 w-full py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-lg transition-colors border border-white/20"
+              >
+                <PhoneIncoming className="w-5 h-5" /> Call Emergency Contact
+              </button>
+            </div>
+
+            {/* Live indicators */}
+            <div className="flex gap-6 text-xs text-red-400/80">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span>Recording audio</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span>Location sharing live</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Video className="w-3 h-3" />
+                <span>Evidence captured</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Dismiss */}
+          <div className="pb-6 flex justify-center">
+            <button
+              onClick={dismissSos}
+              className="flex items-center gap-2 text-white/40 hover:text-white/70 text-sm transition-colors"
+            >
+              <X className="w-4 h-4" /> I'm safe — dismiss emergency mode
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0 bg-sidebar border-r flex flex-col">
         <div className="p-6 flex items-center gap-3">

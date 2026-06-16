@@ -15,6 +15,7 @@ import dashboardRouter from "./dashboard";
 import codewordsRouter from "./codewords";
 import evidenceAiRouter from "./evidence-ai";
 import memoryRouter from "./memory";
+import dangerPredictionRouter from "./danger-prediction";
 
 const router: IRouter = Router();
 
@@ -34,5 +35,6 @@ router.use(codewordsRouter);
 router.use(heatmapRouter);
 router.use(dashboardRouter);
 router.use(memoryRouter);
+router.use(dangerPredictionRouter);
 
 export default router;

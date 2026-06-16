@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Shield, Heart, Pill, Users, Home, Search, Navigation, Phone, Star, Plus, Lock } from "lucide-react";
+import { MapPin, Shield, Heart, Pill, Users, Home, Search, Navigation, Phone, Star, Plus, Lock, AlertTriangle, Eye } from "lucide-react";
 
 export function MapPage() {
   const [location, setLocation] = useState("Sharjah, U.A.E.");
@@ -110,58 +110,105 @@ export function MapPage() {
           </Card>
 
           <div className="bg-muted/30 border rounded-xl overflow-hidden relative flex-1 min-h-[300px]">
-            {/* Map Placeholder with Static Mock Graphic & Pins */}
-                <div className="absolute inset-0 bg-slate-100 overflow-hidden">
-                  {/* Clean, detailed mock map layout */}
-                  <img 
-                    src="https://shop.askexplorer.com/media/catalog/product/cache/3d45c019409e4e20f2cffb6f8fd4d334/t/m/tmp1261_1622720095_5.png" 
-                    alt="City Street Grid Map" 
-                    className="w-full h-full object-cover opacity-50 mix-blend-multiply filter grayscale-[10%]"
-                  />
+            <div className="absolute inset-0 bg-slate-900 overflow-hidden">
+              {/* Base map image */}
+              <img
+                src="https://shop.askexplorer.com/media/catalog/product/cache/3d45c019409e4e20f2cffb6f8fd4d334/t/m/tmp1261_1622720095_5.png"
+                alt="City Street Grid Map"
+                className="w-full h-full object-cover opacity-20 mix-blend-luminosity"
+              />
 
-                  {/* Dynamic Information Overlay Badge */}
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-md shadow-sm border text-xs max-w-xs">
-                    <span className="text-muted-foreground">Viewing:</span> <span className="font-semibold text-purple-700 capitalize">{location || "All Areas"}</span>
-                    <p className="text-[10px] text-muted-foreground/80 mt-0.5">3 Incident Reports & 2 Safe Centers nearby</p>
+              {/* ─── SAFETY BUBBLE: Blue moving corridor ─── */}
+              <div className="absolute inset-x-0 top-[38%] bottom-[38%] bg-blue-500/10 border-y border-blue-400/30" />
+              {/* pulsing user bubble */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className="absolute w-24 h-24 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-blue-400/40 animate-ping" />
+                <div className="absolute w-14 h-14 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/20 border-2 border-blue-400/60 animate-pulse" />
+                <div className="w-4 h-4 -ml-2 -mt-2 rounded-full bg-blue-400 shadow-lg shadow-blue-500/80 border-2 border-white" />
+              </div>
+
+              {/* ─── DANGEROUS ZONES: Red blurs for unsafe areas ─── */}
+              <div className="absolute top-[18%] left-[15%] w-32 h-32 bg-red-600/25 rounded-full filter blur-2xl animate-pulse [animation-duration:3s]" />
+              <div className="absolute bottom-[15%] right-[18%] w-40 h-40 bg-red-500/20 rounded-full filter blur-2xl" />
+              <div className="absolute top-[55%] left-[70%] w-24 h-24 bg-orange-500/20 rounded-full filter blur-xl" />
+
+              {/* ─── SAFE ZONES: Green soft glows ─── */}
+              <div className="absolute top-[40%] right-[10%] w-28 h-28 bg-green-500/15 rounded-full filter blur-xl" />
+              <div className="absolute bottom-[30%] left-[10%] w-20 h-20 bg-green-400/15 rounded-full filter blur-lg" />
+
+              {/* ─── DANGER PINS: Dangerous alleys ─── */}
+              {/* Alley 1 */}
+              <div className="absolute top-[20%] left-[18%] group cursor-pointer z-20">
+                <div className="relative">
+                  <div className="w-7 h-7 bg-red-600 rounded-full shadow-lg shadow-red-500/60 flex items-center justify-center border-2 border-red-300 hover:scale-110 transition-transform">
+                    <AlertTriangle className="w-3.5 h-3.5 text-white" />
                   </div>
-
-                  {/* --- MOCK MAP CONTENT OVERLAYS --- */}
-
-                  {/* Heatmap Layer Example (Shows up if they click the Heatmap tab) */}
-                  <div className="absolute top-1/3 left-1/4 w-48 h-48 bg-red-500/20 rounded-full filter blur-xl animate-pulse" />
-                  <div className="absolute bottom-1/4 right-1/3 w-36 h-36 bg-orange-400/20 rounded-full filter blur-lg" />
-
-                  {/* Mock Incident Pin: Suspicious Activity (Matches your Right Panel!) */}
-                  <div className="absolute top-1/4 right-1/3 group cursor-pointer text-center">
-                    <div className="bg-red-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
-                      <MapPin className="w-4 h-4 fill-white" />
-                    </div>
-                    <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-10">
-                      Suspicious Activity Reported
-                    </div>
-                  </div>
-
-                  {/* Mock Incident Pin: Poor Lighting */}
-                  <div className="absolute bottom-1/3 left-1/3 group cursor-pointer">
-                    <div className="bg-amber-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
-                      <MapPin className="w-4 h-4 fill-white" />
-                    </div>
-                    <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-10">
-                      Poor Lighting Area
-                    </div>
-                  </div>
-
-                  {/* Mock Safe Space Pin: Police / Women's Center */}
-                  <div className="absolute top-1/2 left-1/2 group cursor-pointer">
-                    <div className="bg-green-500 text-white p-2 rounded-full shadow-lg border-2 border-white hover:scale-110 transition-transform animate-bounce [animation-duration:3s]">
-                      <Shield className="w-4 h-4 fill-white" />
-                    </div>
-                    <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-10">
-                      Verified Safe Haven (Police Station)
-                    </div>
+                  <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-red-900 text-red-100 text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-30 font-medium">
+                    ⚠ Dark Alley — Harassment reported 2x
                   </div>
                 </div>
               </div>
+              {/* Alley 2 */}
+              <div className="absolute bottom-[18%] right-[20%] group cursor-pointer z-20">
+                <div className="w-7 h-7 bg-red-500 rounded-full shadow-lg shadow-red-500/60 flex items-center justify-center border-2 border-red-300 hover:scale-110 transition-transform">
+                  <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-red-900 text-red-100 text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-30 font-medium">
+                  ⚠ Industrial Lane — No lighting
+                </div>
+              </div>
+              {/* Alley 3 */}
+              <div className="absolute top-[58%] left-[72%] group cursor-pointer z-20">
+                <div className="w-7 h-7 bg-orange-500 rounded-full shadow-lg shadow-orange-500/60 flex items-center justify-center border-2 border-orange-300 hover:scale-110 transition-transform">
+                  <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-orange-200 text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-30 font-medium">
+                  ⚠ Underpass — Poor lighting after 8PM
+                </div>
+              </div>
+
+              {/* ─── SAFE PINS: Verified safe havens ─── */}
+              {/* Police */}
+              <div className="absolute top-[42%] right-[12%] group cursor-pointer z-20">
+                <div className="w-8 h-8 bg-green-500 rounded-full shadow-lg shadow-green-500/60 flex items-center justify-center border-2 border-white hover:scale-110 transition-transform animate-bounce [animation-duration:4s]">
+                  <Shield className="w-4 h-4 text-white" />
+                </div>
+                <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-green-900 text-green-100 text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-30 font-medium">
+                  ✓ Police Station — Open 24/7
+                </div>
+              </div>
+              {/* Women's Center */}
+              <div className="absolute bottom-[32%] left-[12%] group cursor-pointer z-20">
+                <div className="w-8 h-8 bg-purple-500 rounded-full shadow-lg shadow-purple-500/60 flex items-center justify-center border-2 border-white hover:scale-110 transition-transform">
+                  <Heart className="w-4 h-4 text-white" />
+                </div>
+                <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-purple-900 text-purple-100 text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-30 font-medium">
+                  ✓ Women's Safety Center
+                </div>
+              </div>
+
+              {/* ─── INFO OVERLAY ─── */}
+              <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow border border-slate-700 text-xs max-w-[200px] z-20">
+                <span className="text-slate-400">Viewing:</span> <span className="font-semibold text-purple-300 capitalize">{location || "All Areas"}</span>
+                <p className="text-[10px] text-slate-500 mt-0.5">Live safety bubble active</p>
+              </div>
+
+              {/* ─── LEGEND ─── */}
+              <div className="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow border border-slate-700 text-[10px] space-y-1.5 z-20">
+                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-red-500" /> <span className="text-slate-300">Dangerous alley</span></div>
+                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-orange-400" /> <span className="text-slate-300">Unsafe area</span></div>
+                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-green-500" /> <span className="text-slate-300">Safe haven</span></div>
+                <div className="flex items-center gap-2"><div className="w-5 h-2.5 rounded bg-blue-400/40 border border-blue-400/60" /> <span className="text-slate-300">Safety bubble</span></div>
+              </div>
+
+              {/* ─── SAFETY BUBBLE LABEL ─── */}
+              <div className="absolute top-3 right-3 bg-blue-900/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-blue-400/40 z-20">
+                <p className="text-[10px] text-blue-300 font-semibold flex items-center gap-1.5">
+                  <Eye className="w-3 h-3" /> AI Safety Bubble Active
+                </p>
+              </div>
+            </div>
+          </div>
             </div>
 
             <div className="flex flex-col min-h-0">

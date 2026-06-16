@@ -1,152 +1,316 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
 import { useGetSafeRoutes } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Navigation,
-  Clock,
-  Shield,
-  ArrowRight,
-  MapPin,
-  Map as MapIcon,
-  Route,
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Navigation, Clock, Shield, MapPin, Map as MapIcon, Route,
+  Brain, TrendingUp, Users, Zap, CloudRain, AlertTriangle,
+  Lightbulb, Eye, CheckCircle
+} from "lucide-react";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+type RiskFactor = { factor: string; impact: "high" | "medium" | "low"; detail: string; icon: string };
+type SafetyBubble = {
+  corridorName: string; corridorDescription: string; bubbleRadius: string;
+  activeThreats: string[]; safeZones: string[]; dangerZones: string[];
+  instruction: string;
+};
+type DangerPrediction = {
+  riskScore: number; riskLevel: string; riskTrend: string; trendReason: string;
+  reasons: RiskFactor[]; safetyBubble: SafetyBubble;
+  timeAnalysis: string; recommendation: string; alternativeTime: string;
+};
+
+async function fetchDangerPrediction(body: {
+  origin: string; destination: string; departureTime: string;
+}): Promise<DangerPrediction> {
+  const res = await fetch(`${BASE}/api/danger-prediction`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error("Prediction failed");
+  return res.json();
+}
+
+const factorIcon = (icon: string) => {
+  switch (icon) {
+    case "crowd": return <Users className="w-4 h-4" />;
+    case "lighting": return <Zap className="w-4 h-4" />;
+    case "weather": return <CloudRain className="w-4 h-4" />;
+    case "incidents": return <AlertTriangle className="w-4 h-4" />;
+    case "time": return <Clock className="w-4 h-4" />;
+    default: return <MapPin className="w-4 h-4" />;
+  }
+};
+
+const impactColor = (impact: string) => {
+  if (impact === "high") return "text-red-500 bg-red-500/10";
+  if (impact === "medium") return "text-orange-400 bg-orange-400/10";
+  return "text-yellow-500 bg-yellow-500/10";
+};
+
+const riskColor = (score: number) => {
+  if (score >= 70) return { text: "text-red-500", bg: "bg-red-500", glow: "shadow-red-500/30" };
+  if (score >= 45) return { text: "text-orange-400", bg: "bg-orange-400", glow: "shadow-orange-400/30" };
+  return { text: "text-green-500", bg: "bg-green-500", glow: "shadow-green-500/30" };
+};
 
 export function RoutesPage() {
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
+  const [departureTime, setDepartureTime] = useState(() => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  });
   const [fastestExpanded, setFastestExpanded] = useState(false);
-
   const [, setLocation] = useLocation();
 
   const getRoutes = useGetSafeRoutes();
+  const prediction = useMutation({ mutationFn: fetchDangerPrediction });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!origin || !destination) return;
-    getRoutes.mutate({
-      data: { origin, destination },
-    });
+    getRoutes.mutate({ data: { origin, destination } });
+    prediction.mutate({ origin, destination, departureTime });
   };
+
+  const pred = prediction.data;
+  const colors = pred ? riskColor(pred.riskScore) : null;
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Safe Route Planner
-        </h1>
-        <p className="text-muted-foreground">
-          Compare routes prioritizing your safety above speed.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">Safe Route Planner</h1>
+        <p className="text-muted-foreground">AI-powered danger prediction + safety corridor for every journey.</p>
       </div>
 
       <Card className="border-primary/20 shadow-sm">
         <CardContent className="p-6">
-          <form
-            onSubmit={handleSearch}
-            className="flex flex-col md:flex-row gap-4"
-          >
-            <div className="flex-1 space-y-4">
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="Starting point"
-                  className="pl-10 h-12"
-                  value={origin}
-                  onChange={(e) => setOrigin(e.target.value)}
-                />
+                <Input placeholder="Starting point" className="pl-10 h-12"
+                  value={origin} onChange={(e) => setOrigin(e.target.value)} />
               </div>
               <div className="relative">
                 <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="Destination"
-                  className="pl-10 h-12"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                />
+                <Input placeholder="Destination" className="pl-10 h-12"
+                  value={destination} onChange={(e) => setDestination(e.target.value)} />
+              </div>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input type="time" className="pl-10 h-12"
+                  value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} />
               </div>
             </div>
-            <Button
-              size="lg"
-              className="md:h-auto md:w-32"
-              disabled={getRoutes.isPending}
-            >
-              {getRoutes.isPending ? "Planning..." : "Find Routes"}
+            <Button size="lg" className="w-full h-12 font-semibold" disabled={getRoutes.isPending || prediction.isPending}>
+              {getRoutes.isPending || prediction.isPending ? "Analyzing Route..." : "Predict Danger & Find Routes"}
             </Button>
           </form>
         </CardContent>
       </Card>
 
+      {/* ─── AI DANGER PREDICTION ─── */}
+      {(prediction.isPending) && (
+        <Card className="border-orange-400/40 bg-orange-950/10 animate-pulse">
+          <CardContent className="p-6 flex items-center gap-4">
+            <Brain className="w-8 h-8 text-orange-400 animate-bounce" />
+            <div>
+              <p className="font-semibold text-orange-300">AI Danger Prediction Engine running...</p>
+              <p className="text-sm text-muted-foreground">Analyzing crowd density, lighting, incident history, time patterns</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {pred && colors && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          {/* Risk Score Hero */}
+          <Card className={`border-2 ${pred.riskScore >= 70 ? "border-red-500/50" : pred.riskScore >= 45 ? "border-orange-400/50" : "border-green-500/50"} overflow-hidden`}>
+            <div className={`h-1.5 w-full ${colors.bg}`} />
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                {/* Gauge */}
+                <div className="relative shrink-0">
+                  <svg className="w-28 h-28 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-muted/20" />
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="3"
+                      strokeDasharray={`${pred.riskScore} 100`} strokeLinecap="round"
+                      className={colors.text} style={{ transition: "stroke-dasharray 1s ease" }} />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className={`text-3xl font-black ${colors.text}`}>{pred.riskScore}%</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Risk</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h3 className="text-xl font-bold capitalize">{pred.riskLevel} Risk</h3>
+                    <Badge className={`gap-1.5 ${pred.riskTrend === "increasing" ? "bg-red-500" : pred.riskTrend === "decreasing" ? "bg-green-500" : "bg-yellow-500 text-yellow-950"}`}>
+                      <TrendingUp className="w-3 h-3" />
+                      {pred.riskTrend === "increasing" ? "Becoming more dangerous" : pred.riskTrend === "decreasing" ? "Risk decreasing" : "Risk stable"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{pred.trendReason}</p>
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    {pred.alternativeTime && (
+                      <div className="flex items-center gap-2 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-lg">
+                        <Clock className="w-3.5 h-3.5 shrink-0" />
+                        <span>Safer time: <strong>{pred.alternativeTime}</strong></span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Risk Factors */}
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {pred.reasons.map((r, i) => (
+                  <div key={i} className="flex gap-3 p-3 bg-muted/40 rounded-xl border border-border/60">
+                    <div className={`p-1.5 rounded-lg shrink-0 ${impactColor(r.impact)}`}>
+                      {factorIcon(r.icon)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{r.factor}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{r.detail}</p>
+                    </div>
+                    <Badge variant="outline" className={`ml-auto self-start text-[10px] capitalize shrink-0 ${impactColor(r.impact)}`}>
+                      {r.impact}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+
+              {/* Time analysis + recommendation */}
+              <div className="mt-5 grid sm:grid-cols-2 gap-4">
+                <div className="flex gap-2 text-sm p-3 bg-muted/30 rounded-xl">
+                  <TrendingUp className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-muted-foreground">{pred.timeAnalysis}</p>
+                </div>
+                <div className="flex gap-2 text-sm p-3 bg-primary/5 border border-primary/20 rounded-xl">
+                  <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <p className="font-medium">{pred.recommendation}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Safety Bubble */}
+          <Card className="border-blue-400/40 bg-blue-950/10 overflow-hidden">
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-blue-400">
+                <Eye className="w-5 h-5" /> AI Safety Bubble
+                <Badge className="bg-blue-500 text-white ml-auto text-xs">Active</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pb-5">
+              {/* Animated bubble visual */}
+              <div className="relative h-32 bg-blue-950/20 rounded-xl overflow-hidden border border-blue-400/20 flex items-center justify-center">
+                <div className="absolute w-24 h-24 rounded-full border-2 border-blue-400/30 animate-ping" />
+                <div className="absolute w-16 h-16 rounded-full border-2 border-blue-400/50 animate-pulse" />
+                <div className="absolute w-10 h-10 rounded-full bg-blue-500/30 border-2 border-blue-400 flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-blue-300" />
+                </div>
+                {/* Corridor band */}
+                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-12 bg-blue-400/10 border-y border-blue-400/20" />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-blue-300 font-medium opacity-70">
+                  {pred.safetyBubble.bubbleRadius} radius
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="font-semibold text-sm text-blue-300">{pred.safetyBubble.corridorName}</p>
+                <p className="text-sm text-muted-foreground">{pred.safetyBubble.corridorDescription}</p>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-400/30 rounded-lg p-3">
+                <p className="text-sm font-semibold text-blue-300 flex items-center gap-2">
+                  <Shield className="w-4 h-4" /> {pred.safetyBubble.instruction}
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-3">
+                {pred.safetyBubble.safeZones.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-green-500">Safe Zones</p>
+                    {pred.safetyBubble.safeZones.map((z, i) => (
+                      <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <CheckCircle className="w-3 h-3 text-green-500 shrink-0" /> {z}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {pred.safetyBubble.dangerZones.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-red-500">Danger Zones</p>
+                    {pred.safetyBubble.dangerZones.map((z, i) => (
+                      <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <AlertTriangle className="w-3 h-3 text-red-500 shrink-0" /> {z}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {pred.safetyBubble.activeThreats.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-orange-400">Active Threats</p>
+                    {pred.safetyBubble.activeThreats.map((t, i) => (
+                      <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <AlertTriangle className="w-3 h-3 text-orange-400 shrink-0" /> {t}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ─── ROUTES ─── */}
       {getRoutes.data && (
         <div className="space-y-6">
           <div className="bg-primary/10 text-primary p-4 rounded-lg flex gap-3 items-start border border-primary/20">
             <Shield className="w-5 h-5 shrink-0 mt-0.5" />
-            <p className="font-medium text-sm leading-relaxed">
-              {getRoutes.data.recommendation}
-            </p>
+            <p className="font-medium text-sm leading-relaxed">{getRoutes.data.recommendation}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Safest Route */}
             <Card className="border-2 border-green-500 shadow-md relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-green-500 text-white px-3 py-1 text-xs font-bold rounded-bl-lg">
-                RECOMMENDED
-              </div>
+              <div className="absolute top-0 right-0 bg-green-500 text-white px-3 py-1 text-xs font-bold rounded-bl-lg">RECOMMENDED</div>
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl flex items-center gap-2">
                   <Shield className="w-5 h-5 text-green-500" />
                   {getRoutes.data.safestRoute.name}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-5">
                 <div className="flex gap-4">
                   <div className="flex-1 bg-muted rounded-lg p-3 text-center">
-                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">
-                      Safety Score
-                    </p>
-                    <p className="text-2xl font-bold text-green-500">
-                      {getRoutes.data.safestRoute.safetyScore}
-                    </p>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Safety Score</p>
+                    <p className="text-2xl font-bold text-green-500">{getRoutes.data.safestRoute.safetyScore}</p>
                   </div>
                   <div className="flex-1 bg-muted rounded-lg p-3 text-center">
-                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">
-                      Duration
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {getRoutes.data.safestRoute.duration}
-                    </p>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Duration</p>
+                    <p className="text-2xl font-bold">{getRoutes.data.safestRoute.duration}</p>
                   </div>
                 </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                    Highlights
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {getRoutes.data.safestRoute.highlights.map((h, i) => (
-                      <Badge
-                        key={i}
-                        variant="secondary"
-                        className="bg-green-500/10 text-green-700 hover:bg-green-500/20"
-                      >
-                        {h}
-                      </Badge>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {getRoutes.data.safestRoute.highlights.map((h, i) => (
+                    <Badge key={i} variant="secondary" className="bg-green-500/10 text-green-700 hover:bg-green-500/20">{h}</Badge>
+                  ))}
                 </div>
-
-                <Button
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => {
-                    // Navigates to /guardian and appends ?destination=Sharjah to the URL string
-                    setLocation(
-                      `/guardian?destination=${encodeURIComponent(destination)}`,
-                    );
-                  }}
-                >
+                <Button className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => setLocation(`/guardian?destination=${encodeURIComponent(destination)}`)}>
                   Start Guardian Mode
                 </Button>
               </CardContent>
@@ -160,49 +324,27 @@ export function RoutesPage() {
                   {getRoutes.data.fastestRoute.name}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-5">
                 <div className="flex gap-4">
                   <div className="flex-1 bg-muted rounded-lg p-3 text-center">
-                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">
-                      Safety Score
-                    </p>
-                    <p className="text-2xl font-bold text-orange-500">
-                      {getRoutes.data.fastestRoute.safetyScore}
-                    </p>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Safety Score</p>
+                    <p className="text-2xl font-bold text-orange-500">{getRoutes.data.fastestRoute.safetyScore}</p>
                   </div>
                   <div className="flex-1 bg-muted rounded-lg p-3 text-center">
-                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">
-                      Duration
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {getRoutes.data.fastestRoute.duration}
-                    </p>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Duration</p>
+                    <p className="text-2xl font-bold">{getRoutes.data.fastestRoute.duration}</p>
                   </div>
                 </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                    Highlights
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {getRoutes.data.fastestRoute.highlights.map((h, i) => (
-                      <Badge
-                        key={i}
-                        variant="outline"
-                        className="text-muted-foreground"
-                      >
-                        {h}
-                      </Badge>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {getRoutes.data.fastestRoute.highlights.map((h, i) => (
+                    <Badge key={i} variant="outline" className="text-muted-foreground">{h}</Badge>
+                  ))}
                 </div>
 
                 {fastestExpanded && (
                   <div className="space-y-3 animate-in fade-in duration-200">
                     <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900 rounded-lg p-3 text-sm text-orange-800 dark:text-orange-300">
-                      <p className="font-semibold mb-1 flex items-center gap-2">
-                        <Shield className="w-4 h-4" /> Safety Advisory
-                      </p>
+                      <p className="font-semibold mb-1 flex items-center gap-2"><Shield className="w-4 h-4" /> Safety Advisory</p>
                       <p>This route is faster but passes through 2 lower-lit areas between 9PM–midnight. Consider travelling earlier or enabling Guardian Shadow Mode.</p>
                     </div>
                     <div className="space-y-2 text-sm">
@@ -222,10 +364,8 @@ export function RoutesPage() {
                     {fastestExpanded ? "Hide Details" : "View Details"}
                   </Button>
                   {fastestExpanded && (
-                    <Button
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                      onClick={() => setLocation(`/guardian?destination=${encodeURIComponent(destination)}`)}
-                    >
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                      onClick={() => setLocation(`/guardian?destination=${encodeURIComponent(destination)}`)}>
                       Start Guardian Mode on This Route
                     </Button>
                   )}
@@ -236,12 +376,11 @@ export function RoutesPage() {
         </div>
       )}
 
-      {!getRoutes.data && !getRoutes.isPending && (
+      {!getRoutes.data && !getRoutes.isPending && !prediction.isPending && (
         <div className="text-center py-20 text-muted-foreground">
           <MapIcon className="w-16 h-16 mx-auto mb-4 opacity-20" />
-          <p className="text-lg">
-            Enter your origin and destination to find the safest route.
-          </p>
+          <p className="text-lg font-medium">Enter your journey details above</p>
+          <p className="text-sm mt-1">AI will predict real-time danger and plan the safest corridor for you.</p>
         </div>
       )}
     </div>
