@@ -1,21 +1,57 @@
 import { useState } from "react";
-import { useGetCommunityReports, useGetSafetyHeatmap, useGetNearbySafeSpaces } from "@workspace/api-client-react";
+import { useGetCommunityReports, useGetSafetyHeatmap, useGetNearbySafeSpaces, useSubmitCommunityReport, getGetCommunityReportsQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Shield, Heart, Pill, Users, Home, Search, Navigation, Phone, Star } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { MapPin, Shield, Heart, Pill, Users, Home, Search, Navigation, Phone, Star, Plus, Lock } from "lucide-react";
 
 export function MapPage() {
-  const [location, setLocation] = useState("San Francisco, CA");
+  const [location, setLocation] = useState("Sharjah, U.A.E.");
   const [searchLocation, setSearchLocation] = useState("");
   const [spacesFilter, setSpacesFilter] = useState("all");
   const [reportFilter, setReportFilter] = useState("all");
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportForm, setReportForm] = useState<{
+    type: "harassment" | "suspicious_activity" | "unsafe_area" | "poor_lighting" | "other";
+    description: string;
+    location: string;
+    severity: "low" | "medium" | "high";
+  }>({
+    type: "harassment",
+    description: "",
+    location: "",
+    severity: "medium",
+  });
 
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: reports } = useGetCommunityReports();
   const heatmap = useGetSafetyHeatmap();
   const safeSpaces = useGetNearbySafeSpaces();
+  const submitReport = useSubmitCommunityReport();
+
+  const handleSubmitReport = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitReport.mutate(
+      { data: { type: reportForm.type, description: reportForm.description, location: reportForm.location, severity: reportForm.severity } },
+      {
+        onSuccess: () => {
+          setReportDialogOpen(false);
+          setReportForm({ type: "harassment", description: "", location: "", severity: "medium" });
+          queryClient.invalidateQueries({ queryKey: getGetCommunityReportsQueryKey() });
+          toast({ title: "Report submitted", description: "Thank you — your anonymous report helps keep the community safer." });
+        },
+        onError: () => toast({ title: "Submission failed", description: "Please try again.", variant: "destructive" }),
+      }
+    );
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,39 +110,81 @@ export function MapPage() {
           </Card>
 
           <div className="bg-muted/30 border rounded-xl overflow-hidden relative flex-1 min-h-[300px]">
-            {/* Map Placeholder */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent/5">
-              <MapPin className="w-16 h-16 text-primary/20 mb-4" />
-              <p className="text-muted-foreground font-medium text-lg">Interactive Map View</p>
-              <p className="text-sm text-muted-foreground/70 text-center max-w-sm mt-2">
-                Currently viewing: <span className="font-semibold">{location}</span>
-                <br/>Map renders realtime heatmap zones and safe space markers.
-              </p>
-            </div>
-          </div>
-        </div>
+            {/* Map Placeholder with Static Mock Graphic & Pins */}
+                <div className="absolute inset-0 bg-slate-100 overflow-hidden">
+                  {/* Clean, detailed mock map layout */}
+                  <img 
+                    src="https://shop.askexplorer.com/media/catalog/product/cache/3d45c019409e4e20f2cffb6f8fd4d334/t/m/tmp1261_1622720095_5.png" 
+                    alt="City Street Grid Map" 
+                    className="w-full h-full object-cover opacity-50 mix-blend-multiply filter grayscale-[10%]"
+                  />
 
-        <div className="flex flex-col min-h-0">
-          <Tabs defaultValue="spaces" className="flex-1 flex flex-col h-full">
-            <TabsList className="grid grid-cols-3 mb-4 shrink-0">
-              <TabsTrigger value="spaces">Safe Spaces</TabsTrigger>
-              <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-              <TabsTrigger value="reports">Reports</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="spaces" className="flex-1 overflow-y-auto pr-2 space-y-4 m-0">
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none shrink-0 mb-2">
-                {['all', 'police', 'hospital', 'pharmacy', 'womens_center', 'shelter'].map(type => (
-                  <Badge 
-                    key={type}
-                    variant={spacesFilter === type ? 'default' : 'outline'}
-                    className="cursor-pointer capitalize whitespace-nowrap"
-                    onClick={() => setSpacesFilter(type)}
-                  >
-                    {type.replace('_', ' ')}
-                  </Badge>
-                ))}
+                  {/* Dynamic Information Overlay Badge */}
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-md shadow-sm border text-xs max-w-xs">
+                    <span className="text-muted-foreground">Viewing:</span> <span className="font-semibold text-purple-700 capitalize">{location || "All Areas"}</span>
+                    <p className="text-[10px] text-muted-foreground/80 mt-0.5">3 Incident Reports & 2 Safe Centers nearby</p>
+                  </div>
+
+                  {/* --- MOCK MAP CONTENT OVERLAYS --- */}
+
+                  {/* Heatmap Layer Example (Shows up if they click the Heatmap tab) */}
+                  <div className="absolute top-1/3 left-1/4 w-48 h-48 bg-red-500/20 rounded-full filter blur-xl animate-pulse" />
+                  <div className="absolute bottom-1/4 right-1/3 w-36 h-36 bg-orange-400/20 rounded-full filter blur-lg" />
+
+                  {/* Mock Incident Pin: Suspicious Activity (Matches your Right Panel!) */}
+                  <div className="absolute top-1/4 right-1/3 group cursor-pointer text-center">
+                    <div className="bg-red-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
+                      <MapPin className="w-4 h-4 fill-white" />
+                    </div>
+                    <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-10">
+                      Suspicious Activity Reported
+                    </div>
+                  </div>
+
+                  {/* Mock Incident Pin: Poor Lighting */}
+                  <div className="absolute bottom-1/3 left-1/3 group cursor-pointer">
+                    <div className="bg-amber-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
+                      <MapPin className="w-4 h-4 fill-white" />
+                    </div>
+                    <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-10">
+                      Poor Lighting Area
+                    </div>
+                  </div>
+
+                  {/* Mock Safe Space Pin: Police / Women's Center */}
+                  <div className="absolute top-1/2 left-1/2 group cursor-pointer">
+                    <div className="bg-green-500 text-white p-2 rounded-full shadow-lg border-2 border-white hover:scale-110 transition-transform animate-bounce [animation-duration:3s]">
+                      <Shield className="w-4 h-4 fill-white" />
+                    </div>
+                    <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-md z-10">
+                      Verified Safe Haven (Police Station)
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            <div className="flex flex-col min-h-0">
+              <Tabs defaultValue="spaces" className="flex-1 flex flex-col h-full">
+                <TabsList className="grid grid-cols-3 mb-4 shrink-0">
+                  <TabsTrigger value="spaces">Safe Spaces</TabsTrigger>
+                  <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                  <TabsTrigger value="reports">Reports</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="spaces" className="flex-1 overflow-y-auto pr-2 space-y-4 m-0">
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none shrink-0 mb-2">
+                    {['all', 'police', 'hospital', 'pharmacy', 'womens_center', 'shelter'].map(type => (
+                      <Badge 
+                        key={type}
+                        variant={spacesFilter === type ? 'default' : 'outline'}
+                        className="cursor-pointer capitalize whitespace-nowrap"
+                        onClick={() => setSpacesFilter(type)}
+                      >
+                        {type.replace('_', ' ')}
+                      </Badge>
+                    ))}
+                  </div>
 
               {safeSpaces.data ? (
                 safeSpaces.data
@@ -134,7 +212,7 @@ export function MapPage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2 text-sm text-muted-foreground mb-4">
                         <div className="flex items-start gap-2">
                           <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
@@ -222,43 +300,111 @@ export function MapPage() {
                 </div>
               )}
             </TabsContent>
-            
-            <TabsContent value="reports" className="flex-1 overflow-y-auto pr-2 space-y-4 m-0">
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none shrink-0 mb-2">
-                {['all', 'high', 'medium', 'low'].map(severity => (
-                  <Badge 
-                    key={severity}
-                    variant={reportFilter === severity ? 'default' : 'outline'}
-                    className="cursor-pointer capitalize whitespace-nowrap"
-                    onClick={() => setReportFilter(severity)}
-                  >
-                    {severity}
-                  </Badge>
-                ))}
-              </div>
 
-              {reports?.map((report) => (
-                <Card key={report.id} className="overflow-hidden border-0 shadow-sm ring-1 ring-border">
-                  <div className={`h-1.5 w-full ${getSeverityColor(report.severity)}`} />
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge variant="secondary" className="capitalize text-xs font-semibold">
-                        {report.type.replace('_', ' ')}
+                <TabsContent value="reports" className="flex-1 overflow-y-auto pr-2 space-y-4 m-0">
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none shrink-0 mb-2 items-center">
+                    {['all', 'high', 'medium', 'low'].map(severity => (
+                      <Badge 
+                        key={severity}
+                        variant={reportFilter === severity ? 'default' : 'outline'}
+                        className="cursor-pointer capitalize whitespace-nowrap"
+                        onClick={() => setReportFilter(severity)}
+                      >
+                        {severity}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(report.timestamp).toLocaleDateString()}
-                      </span>
+                    ))}
+                    <div className="ml-auto shrink-0">
+                      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="sm" className="gap-1.5 h-7 text-xs">
+                            <Plus className="w-3.5 h-3.5" /> Report Incident
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <Lock className="w-4 h-4 text-primary" /> Anonymous Incident Report
+                            </DialogTitle>
+                          </DialogHeader>
+                          <p className="text-sm text-muted-foreground -mt-1">Your identity is never recorded. Reports help keep the community safe.</p>
+                          <form onSubmit={handleSubmitReport} className="space-y-4 pt-2">
+                            <div className="space-y-1.5">
+                              <label className="text-sm font-medium">Incident Type</label>
+                              <Select value={reportForm.type} onValueChange={(v: any) => setReportForm({ ...reportForm, type: v })}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="harassment">Harassment</SelectItem>
+                                  <SelectItem value="suspicious_activity">Stalking / Suspicious Activity</SelectItem>
+                                  <SelectItem value="unsafe_area">Unsafe Area / Street</SelectItem>
+                                  <SelectItem value="poor_lighting">Poor Lighting</SelectItem>
+                                  <SelectItem value="other">Other Safety Concern</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-sm font-medium">Location</label>
+                              <Input placeholder="e.g. Near Central Park, Block 3" value={reportForm.location}
+                                onChange={(e) => setReportForm({ ...reportForm, location: e.target.value })} required />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-sm font-medium">Description</label>
+                              <Textarea placeholder="What happened? Be as specific as helpful..." value={reportForm.description}
+                                onChange={(e) => setReportForm({ ...reportForm, description: e.target.value })} required />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-sm font-medium">Severity</label>
+                              <div className="flex gap-2">
+                                {(['low', 'medium', 'high'] as const).map(s => (
+                                  <button key={s} type="button"
+                                    onClick={() => setReportForm({ ...reportForm, severity: s })}
+                                    className={`flex-1 py-2 rounded-lg border text-sm font-medium capitalize transition-all ${reportForm.severity === s
+                                      ? s === 'high' ? 'bg-red-500 text-white border-red-500'
+                                        : s === 'medium' ? 'bg-orange-400 text-white border-orange-400'
+                                        : 'bg-yellow-400 text-yellow-950 border-yellow-400'
+                                      : 'border-border hover:border-primary/50'}`}>
+                                    {s}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <Button type="submit" className="w-full" disabled={submitReport.isPending}>
+                              {submitReport.isPending ? "Submitting..." : "Submit Anonymously"}
+                            </Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
                     </div>
-                    <p className="text-sm mt-2 mb-3 font-medium text-foreground/90">{report.description}</p>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {report.location}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
-            
+                  </div>
+
+                  {/* FIXED FILTER LOGIC */}
+                  {reports?.filter((report) => {
+                    // If 'all' is selected, let every report pass through the filter
+                    if (reportFilter === 'all') return true;
+
+                    // Otherwise, check if the report's severity matches the selected tab state
+                    return report.severity?.toLowerCase() === reportFilter.toLowerCase();
+                  }).map((report) => (
+                    <Card key={report.id} className="overflow-hidden border-0 shadow-sm ring-1 ring-border">
+                      <div className={`h-1.5 w-full ${getSeverityColor(report.severity)}`} />
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <Badge variant="secondary" className="capitalize text-xs font-semibold">
+                            {report.type.replace('_', ' ')}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(report.timestamp).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-sm mt-2 mb-3 font-medium text-foreground/90">{report.description}</p>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                          <MapPin className="w-3.5 h-3.5" />
+                          {report.location}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </TabsContent>
+
           </Tabs>
         </div>
       </div>
