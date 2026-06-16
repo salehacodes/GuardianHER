@@ -17,6 +17,7 @@ import { Assistant } from "@/pages/assistant";
 import { Circle } from "@/pages/circle";
 import { Guardian } from "@/pages/guardian";
 import { FakeCall } from "@/pages/fake-call";
+import { Memory } from "@/pages/memory";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ function Router() {
         <Route path="/circle" component={Circle} />
         <Route path="/guardian" component={Guardian} />
         <Route path="/fake-call" component={FakeCall} />
+        <Route path="/memory" component={Memory} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

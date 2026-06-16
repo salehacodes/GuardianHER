@@ -14,6 +14,7 @@ import heatmapRouter from "./heatmap";
 import dashboardRouter from "./dashboard";
 import codewordsRouter from "./codewords";
 import evidenceAiRouter from "./evidence-ai";
+import memoryRouter from "./memory";
 
 const router: IRouter = Router();
 
@@ -32,5 +33,6 @@ router.use(assistantRouter);
 router.use(codewordsRouter);
 router.use(heatmapRouter);
 router.use(dashboardRouter);
+router.use(memoryRouter);
 
 export default router;
