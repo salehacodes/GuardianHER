@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Shield, Home, LayoutDashboard, Map, Navigation, FolderLock, ScanFace, Bot, Users, Activity, Bell, Sun, Moon, PhoneIncoming, Archive, Phone, AlertTriangle, Radio, Video, MapPin, X } from "lucide-react";
+import { Shield, Home, LayoutDashboard, Map, Navigation, FolderLock, ScanFace, Bot, Users, Activity, Bell, Sun, Moon, PhoneIncoming, Archive, Phone, AlertTriangle, Radio, Video, MapPin, X, ArrowLeft } from "lucide-react";
 import { useSendSosAlert, useGetRecentAlerts } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useSos } from "@/context/sos-context";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,12 +14,12 @@ interface LayoutProps {
 }
 
 export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
   const [notifOpen, setNotifOpen] = useState(false);
-  const [sosActive, setSosActive] = useState(false);
   const [sosSteps, setSosSteps] = useState<boolean[]>([false, false, false, false]);
   const notifRef = useRef<HTMLDivElement>(null);
+  const { sosActive, activateSos, dismissSos: ctxDismiss } = useSos();
 
   const sosAlert = useSendSosAlert();
   const { data: alerts } = useGetRecentAlerts();
@@ -36,7 +37,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
   }, []);
 
   const handleSos = () => {
-    setSosActive(true);
+    activateSos();
     setSosSteps([false, false, false, false]);
     sosAlert.mutate({ data: { location: "Current Location", message: "Emergency! I need help." } });
 
@@ -52,8 +53,13 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
   };
 
   const dismissSos = () => {
-    setSosActive(false);
+    ctxDismiss();
     toast({ title: "Emergency mode dismissed", variant: "destructive" });
+  };
+
+  const goHomeAndDismiss = () => {
+    ctxDismiss();
+    navigate("/");
   };
 
   const navItems = [
@@ -90,6 +96,17 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
         <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-sm animate-in fade-in duration-200">
           {/* Pulsing red border */}
           <div className="absolute inset-0 border-4 border-red-600 animate-pulse rounded-none pointer-events-none" />
+
+          {/* Back / Home button */}
+          <div className="absolute top-4 left-4 z-10">
+            <button
+              onClick={goHomeAndDismiss}
+              className="flex items-center gap-2 text-white/60 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Home
+            </button>
+          </div>
 
           <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 space-y-8">
             {/* Header */}
