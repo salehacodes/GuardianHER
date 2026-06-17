@@ -1,0 +1,19 @@
+Make the following UI changes only. Do not refactor, rename, or restructure any other part of the app. Do not touch backend logic, routing structure, or unrelated components. Keep all changes purely front-end/visual unless explicitly stated. Work through each numbered item one at a time.
+
+1. SOS PANIC FLOW
+On the Home page, when the user clicks the back button from the Emergency Mode Activated screen, instead of returning to a normal Home page, show the Home page with a red banner/card at the very top (above "Your Personal Guardian" hero section). The banner should say "SOS Mode Active" in bold, with two lines below it: "Live location being shared" and "Emergency audio recording in progress". Include a small button/link on the banner to end SOS mode, which when clicked removes the banner and returns to the normal home page state. This is just a visual state toggle, no real backend needed.
+
+2. DASHBOARD CLEANUP
+On the Dashboard page, remove the current row of statistic cards (Safety Score, Guardian, Circle, Reports, Evidence, SOS Sent) AND remove the existing "Quick Access" grid below it. Replace both with a single new "Quick Access" section containing exactly 4 cards: Safety Map, Safe Routes, Fake Call, AI Assistant. Each card should keep the same visual style (icon + label) as the current quick access cards and link to its respective page. Leave "Recent Alerts" and "Safety Tips" sections untouched below.
+
+3. MERGE SAFE ROUTES + GUARDIAN MODE
+Combine the Safe Routes page and the Guardian Mode page into a single page accessible from "Safe Routes" in the nav (remove "Guardian Mode" from the nav). 
+- The page should keep the existing Safe Routes UI (risk analysis, route comparison, "Start Guardian Mode" button) as its initial state.
+- When "Start Guardian Mode" is clicked, transition the same page into an active tracking view with: a banner at the top saying "Guardian Mode Active", with "I'm Safe" and "I Need Help" buttons aligned to the right side of that same banner. Below the banner, the main content area should be a large map mockup showing: the route highlighted in blue, a dot marking current location on the route, and several nearby detour points color-coded blue/yellow/red based on hardcoded danger level. This can all be static/hardcoded — no real map integration or live data needed, just make it look plausible.
+- Clicking "I'm Safe" should return to the initial Safe Routes input view. "I Need Help" can trigger the existing SOS/emergency flow if convenient, otherwise just a placeholder action is fine.
+
+4. DEEPFAKE HUB UPLOAD OPTIONS
+On the Deepfake Detection Hub page, add a file upload option alongside the existing URL input (so users can either paste a link or upload a file directly — both can just be UI, doesn't need real backend processing). Also add a third media type toggle "Audio" next to the existing "Image" and "Video" toggles, styled consistently with them.
+
+5. LOGIN / SIGNUP PAGE
+Add a simple Login/Signup page matching the app's existing dark purple theme. Include a toggle or tab between "Log In" and "Sign Up" forms (email + password fields, plus name field for sign up), a submit button, and make it the first page shown when the app loads, before Home. Submitting either form can just redirect to the Home page — no real authentication needed for this prototype.
