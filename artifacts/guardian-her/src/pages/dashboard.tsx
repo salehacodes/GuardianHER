@@ -1,30 +1,24 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useGetDashboardSummary, useGetRecentAlerts } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Shield, Activity, Users, FolderLock, AlertTriangle, Clock,
-  MapPin, Navigation, ScanFace, Bot, PhoneIncoming, Archive, Map
+  Shield, AlertTriangle, Clock, MapPin, Navigation, Bot, PhoneIncoming, Map, Archive
 } from "lucide-react";
 
 type LocationState = { city: string; coords: string; loading: boolean; error: string | null };
 
-const QUICK_LINKS = [
+const QUICK_ACCESS = [
   { href: "/map", label: "Safety Map", icon: Map, color: "bg-blue-500/10 text-blue-600 dark:text-blue-400", desc: "View heatmap & safe spaces" },
   { href: "/routes", label: "Safe Routes", icon: Navigation, color: "bg-green-500/10 text-green-600 dark:text-green-400", desc: "Plan your journey" },
-  { href: "/circle", label: "Safety Circle", icon: Users, color: "bg-purple-500/10 text-purple-600 dark:text-purple-400", desc: "Manage your contacts" },
-  { href: "/guardian", label: "Guardian Mode", icon: Activity, color: "bg-primary/10 text-primary", desc: "Start journey tracking" },
-  { href: "/evidence", label: "Evidence Vault", icon: FolderLock, color: "bg-orange-500/10 text-orange-600 dark:text-orange-400", desc: "Secure your evidence" },
-  { href: "/deepfake", label: "Deepfake Hub", icon: ScanFace, color: "bg-red-500/10 text-red-600 dark:text-red-400", desc: "Detect manipulated media" },
-  { href: "/assistant", label: "AI Assistant", icon: Bot, color: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400", desc: "Get safety guidance" },
   { href: "/fake-call", label: "Fake Call", icon: PhoneIncoming, color: "bg-teal-500/10 text-teal-600 dark:text-teal-400", desc: "Escape situations" },
-  { href: "/memory", label: "Memory Capsule", icon: Archive, color: "bg-pink-500/10 text-pink-600 dark:text-pink-400", desc: "AI pattern analysis" },
+  { href: "/assistant", label: "AI Assistant", icon: Bot, color: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400", desc: "Get safety guidance" },
 ];
 
 export function Dashboard() {
-  const { data: summary, isLoading: isLoadingSummary } = useGetDashboardSummary();
+  const { isLoading: isLoadingSummary } = useGetDashboardSummary();
   const { data: alerts, isLoading: isLoadingAlerts } = useGetRecentAlerts();
 
   const [loc, setLoc] = useState<LocationState>({ city: "", coords: "", loading: true, error: null });
@@ -38,7 +32,6 @@ export function Dashboard() {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         const coords = `${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E`;
-        // Reverse geocode using a free nominatim API
         fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
           .then((r) => r.json())
           .then((data) => {
@@ -56,12 +49,6 @@ export function Dashboard() {
       { timeout: 5000 }
     );
   }, []);
-
-  const scoreColor = (score: number) => {
-    if (score >= 75) return "text-green-500";
-    if (score >= 50) return "text-orange-400";
-    return "text-red-500";
-  };
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
@@ -98,88 +85,32 @@ export function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Safety Score + Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {isLoadingSummary ? (
-          Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)
-        ) : summary && (
-          <>
-            <Link href="/dashboard">
-              <Card className="cursor-pointer hover:border-primary/50 hover:shadow-md transition-all col-span-2 md:col-span-1">
-                <CardContent className="p-4 text-center">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Safety Score</p>
-                  <p className={`text-3xl font-bold ${scoreColor(summary.safetyScore)}`}>{summary.safetyScore}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">out of 100</p>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/guardian">
-              <Card className="cursor-pointer hover:border-primary/50 hover:shadow-md transition-all">
-                <CardContent className="p-4 text-center">
-                  <Activity className="w-5 h-5 text-primary mx-auto mb-1" />
-                  <p className="text-xs font-medium text-muted-foreground">Guardian</p>
-                  <p className="text-2xl font-bold">{summary.activeGuardianSessions}</p>
-                  <p className="text-[10px] text-muted-foreground">active</p>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/circle">
-              <Card className="cursor-pointer hover:border-purple-400/50 hover:shadow-md transition-all">
-                <CardContent className="p-4 text-center">
-                  <Users className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-                  <p className="text-xs font-medium text-muted-foreground">Circle</p>
-                  <p className="text-2xl font-bold">{summary.circleContacts}</p>
-                  <p className="text-[10px] text-muted-foreground">contacts</p>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/map">
-              <Card className="cursor-pointer hover:border-blue-400/50 hover:shadow-md transition-all">
-                <CardContent className="p-4 text-center">
-                  <AlertTriangle className="w-5 h-5 text-orange-500 mx-auto mb-1" />
-                  <p className="text-xs font-medium text-muted-foreground">Reports</p>
-                  <p className="text-2xl font-bold">{summary.recentReports}</p>
-                  <p className="text-[10px] text-muted-foreground">recent</p>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/evidence">
-              <Card className="cursor-pointer hover:border-orange-400/50 hover:shadow-md transition-all">
-                <CardContent className="p-4 text-center">
-                  <FolderLock className="w-5 h-5 text-orange-500 mx-auto mb-1" />
-                  <p className="text-xs font-medium text-muted-foreground">Evidence</p>
-                  <p className="text-2xl font-bold">{summary.evidenceItems}</p>
-                  <p className="text-[10px] text-muted-foreground">secured</p>
-                </CardContent>
-              </Card>
-            </Link>
-            <Card className="border-destructive/20 bg-destructive/5">
-              <CardContent className="p-4 text-center">
-                <Shield className="w-5 h-5 text-destructive mx-auto mb-1" />
-                <p className="text-xs font-medium text-destructive">SOS Sent</p>
-                <p className="text-2xl font-bold text-destructive">{summary.sosAlertsSent}</p>
-                <p className="text-[10px] text-destructive/70">alerts</p>
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </div>
-
-      {/* Quick Links Grid */}
+      {/* Quick Access — 4 cards */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Quick Access</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-9 gap-3">
-          {QUICK_LINKS.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <div className="flex flex-col items-center gap-2 p-3 rounded-xl border border-border/60 hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer group bg-card">
-                <div className={`p-2.5 rounded-xl ${item.color} group-hover:scale-110 transition-transform`}>
-                  <item.icon className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] font-medium text-center text-muted-foreground leading-tight">{item.label}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {isLoadingSummary ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {QUICK_ACCESS.map((item) => (
+              <Link key={item.href} href={item.href}>
+                <Card className="h-full cursor-pointer hover:border-primary/50 hover:shadow-md transition-all group">
+                  <CardContent className="p-5 flex flex-col items-center text-center gap-3">
+                    <div className={`p-3 rounded-xl ${item.color} group-hover:scale-110 transition-transform`}>
+                      <item.icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{item.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{item.desc}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Recent Alerts */}

@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { useGetSafeRoutes } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useSos } from "@/context/sos-context";
 import {
   Navigation, Clock, Shield, MapPin, Map as MapIcon, Route,
   Brain, TrendingUp, Users, Zap, CloudRain, AlertTriangle,
-  Lightbulb, Eye, CheckCircle
+  Lightbulb, Eye, CheckCircle, ShieldCheck, AlertOctagon
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -61,6 +61,96 @@ const riskColor = (score: number) => {
   return { text: "text-green-500", bg: "bg-green-500", glow: "shadow-green-500/30" };
 };
 
+// Hardcoded detour points for the map mockup
+const DETOUR_POINTS = [
+  { x: 25, y: 68, color: "#3b82f6", label: "Safe bypass", risk: "safe" },
+  { x: 48, y: 52, color: "#eab308", label: "Moderate area", risk: "moderate" },
+  { x: 62, y: 40, color: "#ef4444", label: "High risk zone", risk: "danger" },
+  { x: 75, y: 30, color: "#3b82f6", label: "Well-lit route", risk: "safe" },
+  { x: 35, y: 58, color: "#eab308", label: "Low foot traffic", risk: "moderate" },
+];
+
+function GuardianMapMockup({ origin, destination }: { origin: string; destination: string }) {
+  return (
+    <div className="relative w-full h-72 rounded-xl overflow-hidden border border-blue-500/30 bg-slate-900">
+      {/* Map grid lines */}
+      <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <line key={`v${i}`} x1={`${i * 11.1}%`} y1="0" x2={`${i * 11.1}%`} y2="100%" stroke="#94a3b8" strokeWidth="0.5" />
+        ))}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <line key={`h${i}`} x1="0" y1={`${i * 14.28}%`} x2="100%" y2={`${i * 14.28}%`} stroke="#94a3b8" strokeWidth="0.5" />
+        ))}
+      </svg>
+
+      {/* Route line in blue */}
+      <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#3b82f6" />
+          </marker>
+        </defs>
+        <line
+          x1="10%" y1="82%" x2="90%" y2="15%"
+          stroke="#3b82f6" strokeWidth="3" strokeDasharray="10 4"
+          markerEnd="url(#arrowhead)"
+          opacity="0.8"
+        />
+      </svg>
+
+      {/* Detour points */}
+      {DETOUR_POINTS.map((pt, i) => (
+        <div
+          key={i}
+          className="absolute flex flex-col items-center gap-0.5"
+          style={{ left: `${pt.x}%`, top: `${pt.y}%`, transform: "translate(-50%, -50%)" }}
+        >
+          <div
+            className="w-3 h-3 rounded-full border-2 border-white/30 shadow-lg"
+            style={{ backgroundColor: pt.color }}
+          />
+        </div>
+      ))}
+
+      {/* Current location dot (pulsing) */}
+      <div className="absolute" style={{ left: "38%", top: "60%", transform: "translate(-50%, -50%)" }}>
+        <div className="relative">
+          <div className="absolute inset-0 w-5 h-5 rounded-full bg-blue-400/40 animate-ping" />
+          <div className="w-5 h-5 rounded-full bg-blue-500 border-2 border-white shadow-lg flex items-center justify-center relative">
+            <div className="w-2 h-2 rounded-full bg-white" />
+          </div>
+        </div>
+      </div>
+
+      {/* Origin label */}
+      <div className="absolute bottom-3 left-3 bg-black/60 text-white text-[10px] font-medium px-2 py-1 rounded-md flex items-center gap-1">
+        <MapPin className="w-2.5 h-2.5 text-green-400" />
+        {origin || "Start"}
+      </div>
+
+      {/* Destination label */}
+      <div className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-medium px-2 py-1 rounded-md flex items-center gap-1">
+        <Navigation className="w-2.5 h-2.5 text-blue-400" />
+        {destination || "Destination"}
+      </div>
+
+      {/* Legend */}
+      <div className="absolute bottom-3 right-3 bg-black/60 rounded-md px-2 py-1.5 space-y-1">
+        {[
+          { color: "#3b82f6", label: "Safe" },
+          { color: "#eab308", label: "Moderate" },
+          { color: "#ef4444", label: "Danger" },
+        ].map((l) => (
+          <div key={l.label} className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
+            <span className="text-[9px] text-white/70">{l.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function RoutesPage() {
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
@@ -69,8 +159,10 @@ export function RoutesPage() {
     return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   });
   const [fastestExpanded, setFastestExpanded] = useState(false);
-  const [, setLocation] = useLocation();
+  const [guardianActive, setGuardianActive] = useState(false);
+  const [guardianDest, setGuardianDest] = useState("");
 
+  const { activateSos } = useSos();
   const getRoutes = useGetSafeRoutes();
   const prediction = useMutation({ mutationFn: fetchDangerPrediction });
 
@@ -81,9 +173,90 @@ export function RoutesPage() {
     prediction.mutate({ origin, destination, departureTime });
   };
 
+  const startGuardianMode = (dest: string) => {
+    setGuardianDest(dest || destination);
+    setGuardianActive(true);
+  };
+
+  const endGuardianMode = () => {
+    setGuardianActive(false);
+    setGuardianDest("");
+  };
+
   const pred = prediction.data;
   const colors = pred ? riskColor(pred.riskScore) : null;
 
+  // ─── GUARDIAN ACTIVE VIEW ───
+  if (guardianActive) {
+    return (
+      <div className="space-y-0 max-w-5xl mx-auto">
+        {/* Banner */}
+        <div className="rounded-xl overflow-hidden border border-green-500/40 bg-green-950/30 mb-5">
+          <div className="flex items-center gap-4 px-5 py-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 rounded-full bg-green-500/30 animate-ping" />
+                <div className="w-3 h-3 rounded-full bg-green-500 relative" />
+              </div>
+              <div>
+                <p className="text-green-300 font-black text-base uppercase tracking-wide">Guardian Mode Active</p>
+                <p className="text-green-400/70 text-xs">Tracking journey to <span className="font-semibold text-green-300">{guardianDest}</span></p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white gap-1.5 font-semibold"
+                onClick={endGuardianMode}
+              >
+                <ShieldCheck className="w-4 h-4" /> I'm Safe
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="gap-1.5 font-semibold"
+                onClick={() => { activateSos(); endGuardianMode(); }}
+              >
+                <AlertOctagon className="w-4 h-4" /> I Need Help
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Map mockup */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <MapIcon className="w-5 h-5 text-primary" /> Live Route Map
+          </h2>
+          <GuardianMapMockup origin={origin} destination={guardianDest} />
+
+          {/* Detour legend */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { color: "bg-blue-500", label: "Safe detour", desc: "Well-lit, monitored path" },
+              { color: "bg-yellow-500", label: "Moderate risk", desc: "Low foot traffic area" },
+              { color: "bg-red-500", label: "High risk zone", desc: "Avoid if possible" },
+            ].map((item) => (
+              <div key={item.label} className="flex items-start gap-2 p-3 rounded-xl bg-muted/40 border border-border/60">
+                <div className={`w-2.5 h-2.5 rounded-full mt-0.5 shrink-0 ${item.color}`} />
+                <div>
+                  <p className="text-xs font-semibold">{item.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-sm text-blue-300">
+            <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white/50 shrink-0" />
+            <span>Blue dot marks your current position on the route</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── NORMAL ROUTES VIEW ───
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div className="flex flex-col gap-2">
@@ -119,7 +292,7 @@ export function RoutesPage() {
       </Card>
 
       {/* ─── AI DANGER PREDICTION ─── */}
-      {(prediction.isPending) && (
+      {prediction.isPending && (
         <Card className="border-orange-400/40 bg-orange-950/10 animate-pulse">
           <CardContent className="p-6 flex items-center gap-4">
             <Brain className="w-8 h-8 text-orange-400 animate-bounce" />
@@ -213,14 +386,12 @@ export function RoutesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pb-5">
-              {/* Animated bubble visual */}
               <div className="relative h-32 bg-blue-950/20 rounded-xl overflow-hidden border border-blue-400/20 flex items-center justify-center">
                 <div className="absolute w-24 h-24 rounded-full border-2 border-blue-400/30 animate-ping" />
                 <div className="absolute w-16 h-16 rounded-full border-2 border-blue-400/50 animate-pulse" />
                 <div className="absolute w-10 h-10 rounded-full bg-blue-500/30 border-2 border-blue-400 flex items-center justify-center">
                   <MapPin className="w-4 h-4 text-blue-300" />
                 </div>
-                {/* Corridor band */}
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-12 bg-blue-400/10 border-y border-blue-400/20" />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-blue-300 font-medium opacity-70">
                   {pred.safetyBubble.bubbleRadius} radius
@@ -309,8 +480,10 @@ export function RoutesPage() {
                     <Badge key={i} variant="secondary" className="bg-green-500/10 text-green-700 hover:bg-green-500/20">{h}</Badge>
                   ))}
                 </div>
-                <Button className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => setLocation(`/guardian?destination=${encodeURIComponent(destination)}`)}>
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => startGuardianMode(destination)}
+                >
                   Start Guardian Mode
                 </Button>
               </CardContent>
@@ -364,8 +537,10 @@ export function RoutesPage() {
                     {fastestExpanded ? "Hide Details" : "View Details"}
                   </Button>
                   {fastestExpanded && (
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                      onClick={() => setLocation(`/guardian?destination=${encodeURIComponent(destination)}`)}>
+                    <Button
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                      onClick={() => startGuardianMode(destination)}
+                    >
                       Start Guardian Mode on This Route
                     </Button>
                   )}

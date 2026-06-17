@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Shield, Home, LayoutDashboard, Map, Navigation, FolderLock, ScanFace, Bot, Users, Activity, Bell, Sun, Moon, PhoneIncoming, Archive, Phone, AlertTriangle, Radio, Video, MapPin, X, ArrowLeft } from "lucide-react";
+import { Shield, Home, LayoutDashboard, Map, Navigation, FolderLock, ScanFace, Bot, Users, Bell, Sun, Moon, PhoneIncoming, Archive, Phone, AlertTriangle, Radio, Video, MapPin, X, ArrowLeft } from "lucide-react";
 import { useSendSosAlert, useGetRecentAlerts } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,8 +57,8 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
     toast({ title: "Emergency mode dismissed", variant: "destructive" });
   };
 
-  const goHomeAndDismiss = () => {
-    ctxDismiss();
+  // Navigate home while keeping SOS active — home page shows the persistent banner
+  const goHome = () => {
     navigate("/");
   };
 
@@ -71,7 +71,6 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
     { href: "/deepfake", label: "Deepfake Hub", icon: ScanFace },
     { href: "/assistant", label: "AI Assistant", icon: Bot },
     { href: "/circle", label: "Safety Circle", icon: Users },
-    { href: "/guardian", label: "Guardian Mode", icon: Activity },
     { href: "/fake-call", label: "Fake Call Escape", icon: PhoneIncoming },
     { href: "/memory", label: "Memory Capsule", icon: Archive },
   ];
@@ -100,7 +99,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
           {/* Back / Home button */}
           <div className="absolute top-4 left-4 z-10">
             <button
-              onClick={goHomeAndDismiss}
+              onClick={goHome}
               className="flex items-center gap-2 text-white/60 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 rounded-xl text-sm font-medium transition-all"
             >
               <ArrowLeft className="w-4 h-4" />

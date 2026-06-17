@@ -1,4 +1,4 @@
-import { ShieldAlert, MapPin, Navigation, Bot, Activity, AlertTriangle, Phone, Radio, X } from "lucide-react";
+import { ShieldAlert, MapPin, Navigation, Bot, Radio, X } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,49 +21,37 @@ export function Home() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
 
-      {/* ─── EMERGENCY ACTIVE BANNER ─── */}
+      {/* ─── SOS MODE ACTIVE BANNER ─── */}
       {sosActive && (
         <div className="relative overflow-hidden rounded-2xl border-2 border-red-500 bg-red-950/60 animate-in fade-in duration-300">
-          {/* animated scan line */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent animate-[shimmer_2s_infinite]" />
-          <div className="relative p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            {/* Pulsing icon */}
+          <div className="relative p-4 flex items-center gap-4">
+            {/* Pulsing dot */}
             <div className="relative shrink-0">
-              <div className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />
-              <div className="relative w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg shadow-red-600/40">
-                <AlertTriangle className="w-6 h-6 text-white" />
-              </div>
+              <div className="absolute inset-0 rounded-full bg-red-500/40 animate-ping" />
+              <div className="w-3 h-3 rounded-full bg-red-500 relative" />
             </div>
 
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-red-400 font-black uppercase tracking-widest text-xs">🚨 Emergency Mode</span>
-                <span className="inline-flex items-center gap-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase animate-pulse">
-                  ACTIVATED
+              <p className="text-white font-black text-base uppercase tracking-wide">SOS Mode Active</p>
+              <div className="flex flex-wrap gap-4 mt-0.5 text-xs text-red-300/90">
+                <span className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  Live location being shared
                 </span>
-              </div>
-              <p className="text-white font-semibold text-sm">Your emergency contacts have been notified and location is being shared.</p>
-              <div className="flex flex-wrap gap-3 mt-2 text-xs text-red-300/80">
-                <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Location sharing live</span>
-                <span className="flex items-center gap-1"><Radio className="w-3 h-3" /> Audio recording active</span>
-                <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> Contacts notified</span>
+                <span className="flex items-center gap-1">
+                  <Radio className="w-3 h-3" />
+                  Emergency audio recording in progress
+                </span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 shrink-0">
-              <a
-                href="tel:999"
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors shadow-md"
-              >
-                <Phone className="w-4 h-4" /> Call 999
-              </a>
-              <button
-                onClick={dismissSos}
-                className="flex items-center gap-2 text-white/50 hover:text-white/80 border border-white/20 hover:border-white/40 px-4 py-1.5 rounded-xl text-xs transition-colors"
-              >
-                <X className="w-3 h-3" /> I'm safe
-              </button>
-            </div>
+            <button
+              onClick={dismissSos}
+              className="shrink-0 flex items-center gap-1.5 text-white/60 hover:text-white border border-white/20 hover:border-white/40 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            >
+              <X className="w-3 h-3" /> End SOS
+            </button>
           </div>
         </div>
       )}
@@ -147,11 +135,11 @@ export function Home() {
           </Card>
         </Link>
 
-        <Link href="/guardian" className="block">
+        <Link href="/routes" className="block">
           <Card className="h-full hover:border-primary/50 transition-colors cursor-pointer group">
             <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
               <div className="p-3 bg-primary/10 text-primary rounded-full group-hover:scale-110 transition-transform">
-                <Activity className="w-8 h-8" />
+                <ShieldAlert className="w-8 h-8" />
               </div>
               <h3 className="font-semibold text-lg">Guardian Mode</h3>
               <p className="text-sm text-muted-foreground">Share your journey live with trusted contacts and schedule check-ins.</p>

@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SosProvider } from "@/context/sos-context";
 import NotFound from "@/pages/not-found";
 
-// We will pass the theme switch parameters straight into your layout shell
 import { Layout } from "@/components/layout";
 import { Home } from "@/pages/home";
 import { Dashboard } from "@/pages/dashboard";
@@ -16,16 +15,15 @@ import { Evidence } from "@/pages/evidence";
 import { Deepfake } from "@/pages/deepfake";
 import { Assistant } from "@/pages/assistant";
 import { Circle } from "@/pages/circle";
-import { Guardian } from "@/pages/guardian";
 import { FakeCall } from "@/pages/fake-call";
 import { Memory } from "@/pages/memory";
+import { LoginPage } from "@/pages/login";
 
 const queryClient = new QueryClient();
 
-function Router() {
+function Router({ onLogout }: { onLogout: () => void }) {
   const [isDark, setIsDark] = useState(true);
 
-  // Sync the theme class directly with the DOM document element
   useEffect(() => {
     const root = window.document.documentElement;
     if (isDark) {
@@ -46,7 +44,6 @@ function Router() {
         <Route path="/deepfake" component={Deepfake} />
         <Route path="/assistant" component={Assistant} />
         <Route path="/circle" component={Circle} />
-        <Route path="/guardian" component={Guardian} />
         <Route path="/fake-call" component={FakeCall} />
         <Route path="/memory" component={Memory} />
         <Route component={NotFound} />
@@ -56,12 +53,30 @@ function Router() {
 }
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.add("dark");
+  }, []);
+
+  if (!isLoggedIn) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <LoginPage onLogin={() => setIsLoggedIn(true)} />
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SosProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
+            <Router onLogout={() => setIsLoggedIn(false)} />
           </WouterRouter>
           <Toaster />
         </SosProvider>
