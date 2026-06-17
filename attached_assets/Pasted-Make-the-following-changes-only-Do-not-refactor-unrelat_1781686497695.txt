@@ -1,0 +1,16 @@
+Make the following changes only. Do not refactor unrelated code or restructure components beyond what's described. Work through each item in order.
+
+1. MERGE HOME INTO DASHBOARD
+Remove the Home page and its nav item entirely. Dashboard becomes the app's landing page (the route shown first / linked from the logo). Do not move or recreate the "Check Area Safety" search bar — that functionality is already covered by the Safety Map page. Move the SOS Mode Active banner logic (the one that should appear after returning from the Emergency Mode screen) so it now displays at the top of the Dashboard instead of Home, in the same style as before (red banner, live location + audio recording lines, end SOS option).
+
+2. PROFILE PAGE
+Add a new Profile page (and nav item) showing a fake/placeholder user profile: a profile picture (placeholder image is fine), full name, and contact details (email + phone), styled consistently with the rest of the app's dark purple theme. Static content is fine, no real data needed.
+
+3. FIX SOS PAGE OVERFLOW
+The Emergency Mode Activated screen currently overflows / doesn't fit within the viewport without scrolling. Fix the layout so all elements (alert icon, status checklist, both call buttons, footer status line, and dismiss link) fit within the visible screen on a standard desktop viewport without requiring scroll. Reduce spacing/padding as needed rather than removing any element.
+
+4. FAKE CALL POPUP
+When "Call Emergency Contact" is clicked on the Emergency Mode screen, show a modal/overlay styled like an incoming phone call screen (contact name, calling/ringing status text, accept and decline call icons). This can be purely visual — no real call logic needed, decline or accept can simply close the modal.
+
+5. RECENT ALERTS CLEANUP
+On the Dashboard, trim the Recent Alerts list down to only the 3 oldest entries (the original real ones), removing all the later test/demo entries accumulated during development. Also change the Recent Alerts section from a static expanding list to a collapsible dropdown/accordion, collapsed by default, so it doesn't require scrolling to see the rest of the Dashboard.

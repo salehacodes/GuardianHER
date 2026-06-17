@@ -7,7 +7,6 @@ import { SosProvider } from "@/context/sos-context";
 import NotFound from "@/pages/not-found";
 
 import { Layout } from "@/components/layout";
-import { Home } from "@/pages/home";
 import { Dashboard } from "@/pages/dashboard";
 import { MapPage } from "@/pages/map";
 import { RoutesPage } from "@/pages/routes";
@@ -17,11 +16,12 @@ import { Assistant } from "@/pages/assistant";
 import { Circle } from "@/pages/circle";
 import { FakeCall } from "@/pages/fake-call";
 import { Memory } from "@/pages/memory";
+import { Profile } from "@/pages/profile";
 import { LoginPage } from "@/pages/login";
 
 const queryClient = new QueryClient();
 
-function Router({ onLogout }: { onLogout: () => void }) {
+function Router() {
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
@@ -36,8 +36,7 @@ function Router({ onLogout }: { onLogout: () => void }) {
   return (
     <Layout isDark={isDark} onToggleTheme={() => setIsDark(!isDark)}>
       <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/" component={Dashboard} />
         <Route path="/map" component={MapPage} />
         <Route path="/routes" component={RoutesPage} />
         <Route path="/evidence" component={Evidence} />
@@ -46,6 +45,7 @@ function Router({ onLogout }: { onLogout: () => void }) {
         <Route path="/circle" component={Circle} />
         <Route path="/fake-call" component={FakeCall} />
         <Route path="/memory" component={Memory} />
+        <Route path="/profile" component={Profile} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
@@ -76,7 +76,7 @@ function App() {
       <TooltipProvider>
         <SosProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router onLogout={() => setIsLoggedIn(false)} />
+            <Router />
           </WouterRouter>
           <Toaster />
         </SosProvider>

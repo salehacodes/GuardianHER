@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Shield, Home, LayoutDashboard, Map, Navigation, FolderLock, ScanFace, Bot, Users, Bell, Sun, Moon, PhoneIncoming, Archive, Phone, AlertTriangle, Radio, Video, MapPin, X, ArrowLeft } from "lucide-react";
+import {
+  Shield, LayoutDashboard, Map, Navigation, FolderLock, ScanFace, Bot, Users,
+  Bell, Sun, Moon, PhoneIncoming, Archive, Phone, AlertTriangle, Radio, Video,
+  MapPin, X, User, PhoneOff
+} from "lucide-react";
 import { useSendSosAlert, useGetRecentAlerts } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +22,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
   const { toast } = useToast();
   const [notifOpen, setNotifOpen] = useState(false);
   const [sosSteps, setSosSteps] = useState<boolean[]>([false, false, false, false]);
+  const [fakeCallOpen, setFakeCallOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const { sosActive, overlayActive, activateSos, dismissSos: ctxDismiss, dismissOverlay } = useSos();
 
@@ -40,7 +45,6 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
     activateSos();
     setSosSteps([false, false, false, false]);
     sosAlert.mutate({ data: { location: "Current Location", message: "Emergency! I need help." } });
-
     [0, 1, 2, 3].forEach((i) => {
       setTimeout(() => {
         setSosSteps((prev) => {
@@ -57,15 +61,13 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
     toast({ title: "Emergency mode dismissed", variant: "destructive" });
   };
 
-  // Close overlay and go home — sosActive stays true so home banner stays visible
   const goHome = () => {
     dismissOverlay();
     navigate("/");
   };
 
   const navItems = [
-    { href: "/", label: "Home", icon: Home },
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/map", label: "Safety Map", icon: Map },
     { href: "/routes", label: "Safe Routes", icon: Navigation },
     { href: "/evidence", label: "Evidence Vault", icon: FolderLock },
@@ -74,6 +76,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
     { href: "/circle", label: "Safety Circle", icon: Users },
     { href: "/fake-call", label: "Fake Call Escape", icon: PhoneIncoming },
     { href: "/memory", label: "Memory Capsule", icon: Archive },
+    { href: "/profile", label: "My Profile", icon: User },
   ];
 
   const severityColor = (s: string) => {
@@ -91,87 +94,125 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
+
+      {/* ─── FAKE CALL MODAL ─── */}
+      {fakeCallOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-72 bg-slate-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Top bar */}
+            <div className="px-6 pt-8 pb-4 text-center space-y-2">
+              <p className="text-white/50 text-sm font-medium tracking-widest uppercase">Calling</p>
+              <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center mx-auto text-3xl font-black text-primary">
+                EC
+              </div>
+              <h3 className="text-white text-xl font-bold mt-2">Emergency Contact</h3>
+              <p className="text-white/50 text-sm flex items-center justify-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
+                Ringing...
+              </p>
+            </div>
+            {/* Buttons */}
+            <div className="flex justify-around items-center px-8 py-8 bg-white/5">
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={() => setFakeCallOpen(false)}
+                  className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center transition-colors shadow-lg"
+                >
+                  <PhoneOff className="w-6 h-6 text-white" />
+                </button>
+                <span className="text-white/40 text-xs">Decline</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={() => setFakeCallOpen(false)}
+                  className="w-14 h-14 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-colors shadow-lg"
+                >
+                  <Phone className="w-6 h-6 text-white" />
+                </button>
+                <span className="text-white/40 text-xs">Accept</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── SOS EMERGENCY OVERLAY ─── */}
       {overlayActive && (
         <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-sm animate-in fade-in duration-200">
-          {/* Pulsing red border */}
           <div className="absolute inset-0 border-4 border-red-600 animate-pulse rounded-none pointer-events-none" />
 
-          {/* Back / Home button */}
-          <div className="absolute top-4 left-4 z-10">
+          {/* Back button */}
+          <div className="absolute top-3 left-3 z-10">
             <button
               onClick={goHome}
-              className="flex items-center gap-2 text-white/60 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+              className="flex items-center gap-2 text-white/60 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
+              ← Back to Home
             </button>
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 space-y-8">
-            {/* Header */}
-            <div className="text-center space-y-3">
-              <div className="relative mx-auto w-24 h-24">
+          <div className="flex-1 flex flex-col items-center justify-center px-6 py-3 space-y-4 overflow-hidden">
+            {/* Icon + title */}
+            <div className="text-center space-y-2 shrink-0">
+              <div className="relative mx-auto w-14 h-14">
                 <div className="absolute inset-0 rounded-full bg-red-600/20 animate-ping" />
-                <div className="absolute inset-2 rounded-full bg-red-600/30 animate-pulse" />
-                <div className="relative w-24 h-24 rounded-full bg-red-600 flex items-center justify-center shadow-2xl shadow-red-600/50">
-                  <AlertTriangle className="w-12 h-12 text-white" />
+                <div className="relative w-14 h-14 rounded-full bg-red-600 flex items-center justify-center shadow-2xl shadow-red-600/50">
+                  <AlertTriangle className="w-7 h-7 text-white" />
                 </div>
               </div>
-              <h1 className="text-4xl font-black text-red-400 tracking-tight">🚨 Emergency Mode Activated</h1>
-              <p className="text-red-300/80 text-sm">Help is being notified. Stay calm.</p>
+              <h1 className="text-2xl font-black text-red-400 tracking-tight">🚨 Emergency Mode Activated</h1>
+              <p className="text-red-300/80 text-xs">Help is being notified. Stay calm.</p>
             </div>
 
             {/* Checklist */}
-            <div className="w-full max-w-sm space-y-3">
+            <div className="w-full max-w-sm space-y-1.5 shrink-0">
               {sosCheckList.map((item, i) => (
                 <div
                   key={i}
-                  className={`flex items-center gap-4 px-5 py-3.5 rounded-xl border transition-all duration-500 ${
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-500 ${
                     sosSteps[i]
                       ? "bg-green-500/10 border-green-500/40 text-green-300"
                       : "bg-white/5 border-white/10 text-white/40"
                   }`}
                 >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${
-                    sosSteps[i] ? "bg-green-500" : "bg-white/10"
-                  }`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${sosSteps[i] ? "bg-green-500" : "bg-white/10"}`}>
                     {sosSteps[i] ? (
-                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     ) : (
-                      <item.icon className="w-3 h-3 text-white/40" />
+                      <item.icon className="w-2.5 h-2.5 text-white/40" />
                     )}
                   </div>
-                  <span className="font-medium text-sm">{item.label}</span>
+                  <span className="font-medium text-xs">{item.label}</span>
                 </div>
               ))}
             </div>
 
-            {/* Action Buttons */}
-            <div className="w-full max-w-sm space-y-3 pt-2">
-              <a href="tel:999" className="flex items-center justify-center gap-3 w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-lg transition-colors shadow-lg shadow-red-600/30">
-                <Phone className="w-5 h-5" /> Call Emergency Services
+            {/* Action buttons */}
+            <div className="w-full max-w-sm space-y-2 shrink-0">
+              <a
+                href="tel:999"
+                className="flex items-center justify-center gap-3 w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-base transition-colors shadow-lg shadow-red-600/30"
+              >
+                <Phone className="w-4 h-4" /> Call Emergency Services
               </a>
               <button
-                onClick={() => {
-                  toast({ title: "Calling Emergency Contact", description: "Connecting you to your primary contact..." });
-                }}
-                className="flex items-center justify-center gap-3 w-full py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-lg transition-colors border border-white/20"
+                onClick={() => setFakeCallOpen(true)}
+                className="flex items-center justify-center gap-3 w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-base transition-colors border border-white/20"
               >
-                <PhoneIncoming className="w-5 h-5" /> Call Emergency Contact
+                <PhoneIncoming className="w-4 h-4" /> Call Emergency Contact
               </button>
             </div>
 
             {/* Live indicators */}
-            <div className="flex gap-6 text-xs text-red-400/80">
+            <div className="flex gap-4 text-xs text-red-400/80 shrink-0">
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                 <span>Recording audio</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 <span>Location sharing live</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -182,12 +223,12 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
           </div>
 
           {/* Dismiss */}
-          <div className="pb-6 flex justify-center">
+          <div className="pb-3 flex justify-center shrink-0">
             <button
               onClick={dismissSos}
-              className="flex items-center gap-2 text-white/40 hover:text-white/70 text-sm transition-colors"
+              className="flex items-center gap-2 text-white/40 hover:text-white/70 text-xs transition-colors"
             >
-              <X className="w-4 h-4" /> I'm safe — dismiss emergency mode
+              <X className="w-3 h-3" /> I'm safe — dismiss emergency mode
             </button>
           </div>
         </div>
@@ -195,12 +236,12 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
 
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0 bg-sidebar border-r flex flex-col">
-        <div className="p-6 flex items-center gap-3">
+        <Link href="/" className="p-6 flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div className="bg-primary text-primary-foreground p-2 rounded-lg">
             <Shield className="w-6 h-6" />
           </div>
           <span className="font-bold text-xl text-sidebar-foreground">GuardianHER</span>
-        </div>
+        </Link>
 
         <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
@@ -252,7 +293,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
             )}
           </Button>
 
-          {/* Notification Bell with Dropdown */}
+          {/* Notification Bell */}
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setNotifOpen((o) => !o)}
@@ -276,7 +317,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {alerts && alerts.length > 0 ? (
-                    alerts.map((alert) => (
+                    alerts.slice(0, 3).map((alert) => (
                       <div
                         key={alert.id}
                         className="px-4 py-3 hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors"
@@ -307,7 +348,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
                   )}
                 </div>
                 <div className="px-4 py-2.5 border-t border-border bg-muted/30">
-                  <Link href="/dashboard" onClick={() => setNotifOpen(false)}
+                  <Link href="/" onClick={() => setNotifOpen(false)}
                     className="text-xs text-primary hover:underline font-medium">
                     View all alerts →
                   </Link>

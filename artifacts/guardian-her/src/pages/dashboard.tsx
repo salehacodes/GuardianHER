@@ -4,8 +4,10 @@ import { useGetDashboardSummary, useGetRecentAlerts } from "@workspace/api-clien
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSos } from "@/context/sos-context";
 import {
-  Shield, AlertTriangle, Clock, MapPin, Navigation, Bot, PhoneIncoming, Map, Archive
+  Shield, AlertTriangle, Clock, MapPin, Navigation, Bot,
+  PhoneIncoming, Map, Archive, Radio, X, ChevronDown, ChevronUp
 } from "lucide-react";
 
 type LocationState = { city: string; coords: string; loading: boolean; error: string | null };
@@ -20,6 +22,8 @@ const QUICK_ACCESS = [
 export function Dashboard() {
   const { isLoading: isLoadingSummary } = useGetDashboardSummary();
   const { data: alerts, isLoading: isLoadingAlerts } = useGetRecentAlerts();
+  const { sosActive, dismissSos } = useSos();
+  const [alertsOpen, setAlertsOpen] = useState(false);
 
   const [loc, setLoc] = useState<LocationState>({ city: "", coords: "", loading: true, error: null });
 
@@ -50,9 +54,44 @@ export function Dashboard() {
     );
   }, []);
 
+  const displayedAlerts = alerts ? alerts.slice(0, 3) : [];
+
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      <div className="flex flex-col gap-2">
+    <div className="space-y-6 max-w-6xl mx-auto">
+
+      {/* ─── SOS MODE ACTIVE BANNER ─── */}
+      {sosActive && (
+        <div className="relative overflow-hidden rounded-2xl border-2 border-red-500 bg-red-950/60 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent pointer-events-none" />
+          <div className="relative p-4 flex items-center gap-4">
+            <div className="relative shrink-0">
+              <div className="absolute inset-0 rounded-full bg-red-500/40 animate-ping" />
+              <div className="w-3 h-3 rounded-full bg-red-500 relative" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-black text-base uppercase tracking-wide">SOS Mode Active</p>
+              <div className="flex flex-wrap gap-4 mt-0.5 text-xs text-red-300/90">
+                <span className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  Live location being shared
+                </span>
+                <span className="flex items-center gap-1">
+                  <Radio className="w-3 h-3" />
+                  Emergency audio recording in progress
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={dismissSos}
+              className="shrink-0 flex items-center gap-1.5 text-white/60 hover:text-white border border-white/20 hover:border-white/40 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            >
+              <X className="w-3 h-3" /> End SOS
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold tracking-tight">Personal Safety Dashboard</h1>
         <p className="text-muted-foreground">Your comprehensive safety overview and active alerts.</p>
       </div>
@@ -71,9 +110,7 @@ export function Dashboard() {
               ) : (
                 <div className="flex flex-wrap items-center gap-3">
                   <p className="font-semibold text-foreground">{loc.city}</p>
-                  {loc.coords && (
-                    <p className="text-xs text-muted-foreground font-mono">{loc.coords}</p>
-                  )}
+                  {loc.coords && <p className="text-xs text-muted-foreground font-mono">{loc.coords}</p>}
                 </div>
               )}
             </div>
@@ -113,56 +150,84 @@ export function Dashboard() {
         )}
       </div>
 
-      {/* Recent Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-xl font-semibold">Recent Alerts</h2>
-          {isLoadingAlerts ? (
-            <div className="space-y-3">
-              {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
+      {/* Recent Alerts + Safety Tips side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Recent Alerts — collapsible accordion */}
+        <div className="lg:col-span-2">
+          <button
+            onClick={() => setAlertsOpen((o) => !o)}
+            className="w-full flex items-center justify-between mb-3 group"
+          >
+            <h2 className="text-xl font-semibold">Recent Alerts</h2>
+            <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
+              {displayedAlerts.length > 0 && (
+                <Badge variant="secondary" className="text-xs">{displayedAlerts.length}</Badge>
+              )}
+              {alertsOpen
+                ? <ChevronUp className="w-4 h-4" />
+                : <ChevronDown className="w-4 h-4" />}
             </div>
-          ) : alerts && alerts.length > 0 ? (
-            <div className="space-y-3">
-              {alerts.map((alert) => (
-                <Card
-                  key={alert.id}
-                  className={`border-l-4 ${
-                    alert.severity === "critical" ? "border-l-destructive" :
-                    alert.severity === "high" ? "border-l-orange-500" :
-                    alert.severity === "medium" ? "border-l-yellow-500" : "border-l-primary"
-                  }`}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className={`w-4 h-4 ${
-                          alert.severity === "critical" ? "text-destructive" :
-                          alert.severity === "high" ? "text-orange-500" :
-                          alert.severity === "medium" ? "text-yellow-500" : "text-primary"
-                        }`} />
-                        <span className="font-semibold capitalize text-sm">{alert.type.replace(/_/g, " ")}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {new Date(alert.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </div>
-                    <p className="text-sm font-medium mb-0.5">{alert.message}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> {alert.location}
-                    </p>
+          </button>
+
+          {alertsOpen && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+              {isLoadingAlerts ? (
+                <div className="space-y-3">
+                  {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
+                </div>
+              ) : displayedAlerts.length > 0 ? (
+                <div className="space-y-3">
+                  {displayedAlerts.map((alert) => (
+                    <Card
+                      key={alert.id}
+                      className={`border-l-4 ${
+                        alert.severity === "critical" ? "border-l-destructive" :
+                        alert.severity === "high" ? "border-l-orange-500" :
+                        alert.severity === "medium" ? "border-l-yellow-500" : "border-l-primary"
+                      }`}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className={`w-4 h-4 ${
+                              alert.severity === "critical" ? "text-destructive" :
+                              alert.severity === "high" ? "text-orange-500" :
+                              alert.severity === "medium" ? "text-yellow-500" : "text-primary"
+                            }`} />
+                            <span className="font-semibold capitalize text-sm">{alert.type.replace(/_/g, " ")}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {new Date(alert.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium mb-0.5">{alert.message}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> {alert.location}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="p-10 text-center text-muted-foreground">
+                    <Shield className="w-10 h-10 mx-auto mb-3 text-green-500 opacity-50" />
+                    <p className="font-medium">All clear — no recent alerts</p>
+                    <p className="text-sm mt-1">Your safety network is active and monitoring.</p>
                   </CardContent>
                 </Card>
-              ))}
+              )}
             </div>
-          ) : (
-            <Card>
-              <CardContent className="p-10 text-center text-muted-foreground">
-                <Shield className="w-10 h-10 mx-auto mb-3 text-green-500 opacity-50" />
-                <p className="font-medium">All clear — no recent alerts</p>
-                <p className="text-sm mt-1">Your safety network is active and monitoring.</p>
-              </CardContent>
-            </Card>
+          )}
+
+          {!alertsOpen && (
+            <p className="text-sm text-muted-foreground">
+              {isLoadingAlerts ? "Loading..." : displayedAlerts.length === 0
+                ? "No recent alerts — all clear."
+                : `${displayedAlerts.length} alert${displayedAlerts.length !== 1 ? "s" : ""} — click to expand.`}
+            </p>
           )}
         </div>
 
