@@ -19,7 +19,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [sosSteps, setSosSteps] = useState<boolean[]>([false, false, false, false]);
   const notifRef = useRef<HTMLDivElement>(null);
-  const { sosActive, activateSos, dismissSos: ctxDismiss } = useSos();
+  const { sosActive, overlayActive, activateSos, dismissSos: ctxDismiss, dismissOverlay } = useSos();
 
   const sosAlert = useSendSosAlert();
   const { data: alerts } = useGetRecentAlerts();
@@ -57,8 +57,9 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
     toast({ title: "Emergency mode dismissed", variant: "destructive" });
   };
 
-  // Navigate home while keeping SOS active — home page shows the persistent banner
+  // Close overlay and go home — sosActive stays true so home banner stays visible
   const goHome = () => {
+    dismissOverlay();
     navigate("/");
   };
 
@@ -91,7 +92,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* ─── SOS EMERGENCY OVERLAY ─── */}
-      {sosActive && (
+      {overlayActive && (
         <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-sm animate-in fade-in duration-200">
           {/* Pulsing red border */}
           <div className="absolute inset-0 border-4 border-red-600 animate-pulse rounded-none pointer-events-none" />
