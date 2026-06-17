@@ -54,7 +54,7 @@ export function Dashboard() {
     );
   }, []);
 
-  const displayedAlerts = alerts ? alerts.slice(0, 3) : [];
+  const displayedAlerts = alerts || [];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">

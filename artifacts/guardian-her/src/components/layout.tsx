@@ -23,6 +23,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [sosSteps, setSosSteps] = useState<boolean[]>([false, false, false, false]);
   const [fakeCallOpen, setFakeCallOpen] = useState(false);
+  const [emergencyCallOpen, setEmergencyCallOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const { sosActive, overlayActive, activateSos, dismissSos: ctxDismiss, dismissOverlay } = useSos();
 
@@ -96,6 +97,43 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
     <div className="flex h-screen w-full bg-background overflow-hidden">
 
       {/* ─── FAKE CALL MODAL ─── */}
+      {/* Emergency Services Popup */}
+      {emergencyCallOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-80 bg-slate-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="px-6 pt-8 pb-2 text-center space-y-2">
+              <div className="w-16 h-16 rounded-full bg-red-600/20 border-2 border-red-500/40 flex items-center justify-center mx-auto">
+                <Phone className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-white text-xl font-bold">Emergency Services</h3>
+              <p className="text-white/40 text-sm">Tap below to dial directly</p>
+            </div>
+            <div className="px-6 py-4 space-y-2">
+              <a
+                href="tel:999"
+                className="flex items-center gap-3 w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-base transition-colors shadow-lg justify-center"
+              >
+                <Phone className="w-4 h-4" /> Call 999
+              </a>
+              <a
+                href="tel:911"
+                className="flex items-center gap-3 w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-base transition-colors border border-white/20 justify-center"
+              >
+                <Phone className="w-4 h-4" /> Call 911
+              </a>
+            </div>
+            <div className="px-6 pb-6 flex justify-center">
+              <button
+                onClick={() => setEmergencyCallOpen(false)}
+                className="text-white/40 hover:text-white/70 text-xs transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {fakeCallOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="w-72 bg-slate-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
@@ -182,12 +220,12 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
 
             {/* Action buttons */}
             <div className="w-full max-w-sm space-y-2 shrink-0">
-              <a
-                href="tel:999"
+              <button
+                onClick={() => setEmergencyCallOpen(true)}
                 className="flex items-center justify-center gap-3 w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-base transition-colors shadow-lg shadow-red-600/30"
               >
                 <Phone className="w-4 h-4" /> Call Emergency Services
-              </a>
+              </button>
               <button
                 onClick={() => setFakeCallOpen(true)}
                 className="flex items-center justify-center gap-3 w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-base transition-colors border border-white/20"
