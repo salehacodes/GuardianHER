@@ -37,6 +37,7 @@ function Router() {
     <Layout isDark={isDark} onToggleTheme={() => setIsDark(!isDark)}>
       <Switch>
         <Route path="/" component={Dashboard} />
+        <Route path="/dashboard">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/map" component={MapPage} />
         <Route path="/routes" component={RoutesPage} />
         <Route path="/evidence" component={Evidence} />
