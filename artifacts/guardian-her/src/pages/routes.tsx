@@ -63,11 +63,9 @@ const riskColor = (score: number) => {
 
 // Hardcoded detour points for the map mockup
 const DETOUR_POINTS = [
-  { x: 25, y: 68, color: "#3b82f6", label: "Safe bypass", risk: "safe" },
-  { x: 48, y: 52, color: "#eab308", label: "Moderate area", risk: "moderate" },
-  { x: 62, y: 40, color: "#ef4444", label: "High risk zone", risk: "danger" },
-  { x: 75, y: 30, color: "#3b82f6", label: "Well-lit route", risk: "safe" },
-  { x: 35, y: 58, color: "#eab308", label: "Low foot traffic", risk: "moderate" },
+  { x: 25, y: 88, color: "#3b82f6", label: "Safe bypass", risk: "safe" },
+  { x: 70, y: 75, color: "#eab308", label: "Moderate area", risk: "moderate" },
+  { x: 72, y: 18, color: "#ef4444", label: "High risk zone", risk: "danger" },
 ];
 
 function GuardianMapMockup({ origin, destination }: { origin: string; destination: string }) {
@@ -84,7 +82,7 @@ function GuardianMapMockup({ origin, destination }: { origin: string; destinatio
       </svg>
 
       {/* Route line + branch lines */}
-      <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
             <polygon points="0 0, 8 3, 0 6" fill="#3b82f6" />
@@ -92,22 +90,18 @@ function GuardianMapMockup({ origin, destination }: { origin: string; destinatio
         </defs>
         {/* Main route */}
         <line
-          x1="10%" y1="82%" x2="90%" y2="15%"
-          stroke="#3b82f6" strokeWidth="3" strokeDasharray="10 4"
+          x1="10" y1="82" x2="90" y2="15"
+          stroke="#3b82f6" strokeWidth="0.6" strokeDasharray="2.5 1"
           markerEnd="url(#arrowhead)"
           opacity="0.8"
         />
-        {/* Branch lines — start ON the main route, peel off to each detour dot */}
-        {/* dot (25,68) safe/blue  — branch from route point (22, 71.9) */}
-        <line x1="22%" y1="71.9%" x2="25%" y2="68%" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
-        {/* dot (35,58) moderate/yellow — branch from route point (33, 62.7) */}
-        <line x1="33%" y1="62.7%" x2="35%" y2="58%" stroke="#eab308" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
-        {/* dot (48,52) moderate/yellow — branch from route point (43, 54.4) */}
-        <line x1="43%" y1="54.4%" x2="48%" y2="52%" stroke="#eab308" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
-        {/* dot (62,40) danger/red — branch from route point (57, 42.6) */}
-        <line x1="57%" y1="42.6%" x2="62%" y2="40%" stroke="#ef4444" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
-        {/* dot (75,30) safe/blue — branch from route point (70, 31.8) */}
-        <line x1="70%" y1="31.8%" x2="75%" y2="30%" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
+        {/* Branch lines — start ON the main route, diverge far out to each detour dot */}
+        {/* dot (18,88) safe/blue — branch from route point (~18, ~78.6) */}
+        <line x1="18" y1="78.6" x2="25" y2="88" stroke="#3b82f6" strokeWidth="0.6" opacity="1" />
+        {/* dot (50,75) moderate/yellow — branch from route point (~50, ~49.4) */}
+        <line x1="50" y1="49.4" x2="70" y2="75" stroke="#eab308" strokeWidth="0.6" opacity="1" />
+        {/* dot (68,18) danger/red — branch from route point (~68, ~35.9) */}
+        <line x1="68" y1="35.9" x2="72" y2="18" stroke="#ef4444" strokeWidth="0.6" opacity="1" />
       </svg>
 
       {/* Detour points */}
