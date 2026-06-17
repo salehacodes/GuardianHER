@@ -111,8 +111,8 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
                 Ringing...
               </p>
             </div>
-            {/* Buttons */}
-            <div className="flex justify-around items-center px-8 py-8 bg-white/5">
+            {/* End Call button */}
+            <div className="flex justify-center items-center px-8 py-8 bg-white/5">
               <div className="flex flex-col items-center gap-2">
                 <button
                   onClick={() => setFakeCallOpen(false)}
@@ -120,16 +120,7 @@ export function Layout({ children, isDark, onToggleTheme }: LayoutProps) {
                 >
                   <PhoneOff className="w-6 h-6 text-white" />
                 </button>
-                <span className="text-white/40 text-xs">Decline</span>
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                <button
-                  onClick={() => setFakeCallOpen(false)}
-                  className="w-14 h-14 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center transition-colors shadow-lg"
-                >
-                  <Phone className="w-6 h-6 text-white" />
-                </button>
-                <span className="text-white/40 text-xs">Accept</span>
+                <span className="text-white/40 text-xs">End Call</span>
               </div>
             </div>
           </div>
