@@ -83,19 +83,31 @@ function GuardianMapMockup({ origin, destination }: { origin: string; destinatio
         ))}
       </svg>
 
-      {/* Route line in blue */}
+      {/* Route line + branch lines */}
       <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
             <polygon points="0 0, 8 3, 0 6" fill="#3b82f6" />
           </marker>
         </defs>
+        {/* Main route */}
         <line
           x1="10%" y1="82%" x2="90%" y2="15%"
           stroke="#3b82f6" strokeWidth="3" strokeDasharray="10 4"
           markerEnd="url(#arrowhead)"
           opacity="0.8"
         />
+        {/* Branch lines — start ON the main route, peel off to each detour dot */}
+        {/* dot (25,68) safe/blue  — branch from route point (22, 71.9) */}
+        <line x1="22%" y1="71.9%" x2="25%" y2="68%" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
+        {/* dot (35,58) moderate/yellow — branch from route point (33, 62.7) */}
+        <line x1="33%" y1="62.7%" x2="35%" y2="58%" stroke="#eab308" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
+        {/* dot (48,52) moderate/yellow — branch from route point (43, 54.4) */}
+        <line x1="43%" y1="54.4%" x2="48%" y2="52%" stroke="#eab308" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
+        {/* dot (62,40) danger/red — branch from route point (57, 42.6) */}
+        <line x1="57%" y1="42.6%" x2="62%" y2="40%" stroke="#ef4444" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
+        {/* dot (75,30) safe/blue — branch from route point (70, 31.8) */}
+        <line x1="70%" y1="31.8%" x2="75%" y2="30%" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5 3" opacity="0.9" />
       </svg>
 
       {/* Detour points */}
